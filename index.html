@@ -1,0 +1,3707 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>HLTV.org - Custom CS2 Player Profile & Stats Creator</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Google Fonts: Open Sans & Oswald (Authentic HLTV Fonts) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Open+Sans:ital,wght@0,400;0,600;0,700;0,800;1,400&family=Oswald:wght@500;600;700&display=swap" rel="stylesheet">
+  <!-- FontAwesome 4.7 (Authentic HLTV Icon Set) -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+
+  <style>
+    :root {
+      --bg-body: #111417;
+      --bg-col: #1b1f23;
+      --bg-box: #252b32;
+      --bg-box-alt: #2d3844;
+      --bg-box-dark: #191e23;
+      --border: #38434f;
+      --text: #dcdcdc;
+      --text-muted: #87a3bf;
+      --hltv-blue: #2b6ea4;
+      --accent-blue: #4994df;
+      --band-poor: #ff4e4e;
+      --band-okay: #f5a623;
+      --band-good: #04bc6c;
+      --teamColor: #e31e24;
+      /* Authentic HLTV Weapon Category Colors */
+      --cat-rifles: #36a2eb;
+      --cat-snipers: #ffce56;
+      --cat-smgs: #4bc0c0;
+      --cat-pistols: #9966ff;
+      --cat-grenades: #ff9f40;
+      --cat-other: #c9cbcf;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      background-color: var(--bg-body);
+      background-image: radial-gradient(ellipse at 50% 0%, #1d2631 0%, #111417 70%);
+      color: var(--text);
+      font-family: 'Open Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+      font-size: 12px;
+      line-height: 1.4;
+      margin: 0;
+      padding: 0;
+      overflow-x: hidden;
+    }
+
+    .font-oswald {
+      font-family: 'Oswald', sans-serif;
+    }
+
+    /* Authentic HLTV Standard Box */
+    .standard-box {
+      background-color: var(--bg-box);
+      border: 1px solid var(--border);
+      border-radius: 3px;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.32);
+    }
+
+    .standard-headline {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      letter-spacing: 0.4px;
+      margin-bottom: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    /* HLTV 3-Column Desktop Grid */
+    .hltv-container {
+      max-width: 1088px;
+      margin: 0 auto;
+      padding: 12px 8px 70px;
+      display: grid;
+      grid-template-columns: 160px 660px 240px;
+      gap: 10px;
+      align-items: start;
+    }
+
+    @media (max-width: 1100px) {
+      .hltv-container {
+        grid-template-columns: 160px 1fr;
+        max-width: 860px;
+      }
+      .right-col {
+        grid-column: 1 / -1;
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+        gap: 10px;
+      }
+    }
+
+    @media (max-width: 768px) {
+      .hltv-container {
+        grid-template-columns: 1fr;
+        padding: 8px 6px 80px;
+      }
+      .left-col {
+        position: fixed;
+        top: 0;
+        left: 0;
+        bottom: 0;
+        width: 260px;
+        background-color: var(--bg-col);
+        z-index: 60;
+        padding: 14px;
+        overflow-y: auto;
+        border-right: 1px solid var(--border);
+        transform: translateX(-100%);
+        transition: transform 0.25s ease;
+        box-shadow: 6px 0 24px rgba(0,0,0,0.7);
+      }
+      .left-col.mobile-open {
+        transform: translateX(0);
+      }
+    }
+
+    /* Mobile Floating Left-Col Pull Button (.leftColPullInButton) */
+    .leftColPullInButton {
+      display: none;
+    }
+    @media (max-width: 768px) {
+      .leftColPullInButton {
+        display: flex;
+        position: fixed;
+        bottom: 16px;
+        left: 14px;
+        z-index: 55;
+        background-color: var(--hltv-blue);
+        color: #ffffff;
+        border: 1px solid #4994df;
+        border-radius: 999px;
+        padding: 8px 14px;
+        font-size: 11px;
+        font-weight: 700;
+        box-shadow: 0 4px 14px rgba(0,0,0,0.65);
+        align-items: center;
+        gap: 6px;
+      }
+    }
+
+    /* Performance Colors */
+    .belowAverage-text { color: var(--band-poor) !important; }
+    .average-text { color: var(--band-okay) !important; }
+    .aboveAverage-text { color: var(--band-good) !important; }
+
+    /* Player Summary Stat Box (Karrigan Reference Replica) */
+    .player-summary-stat-box {
+      display: grid;
+      grid-template-columns: 245px 1fr;
+      background-color: var(--bg-box);
+      border: 1px solid var(--border);
+      border-radius: 3px;
+      overflow: hidden;
+      margin-bottom: 12px;
+    }
+
+    @media (max-width: 640px) {
+      .player-summary-stat-box {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .player-left-card {
+      background-color: #121F2B;
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      border-right: 1px solid var(--border);
+      overflow: hidden;
+      min-height: 295px;
+    }
+    @media (max-width: 640px) {
+      .player-left-card {
+        border-right: none;
+        border-bottom: 1px solid var(--border);
+      }
+    }
+
+    .team-glow-backdrop {
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(circle at 50% 38%, var(--teamColor) 0%, transparent 72%);
+      opacity: 0.28;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .team-stripes-svg {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      opacity: 0.14;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* 3-Segment Stat Bar */
+    .three-seg-bar {
+      position: relative;
+      height: 5px;
+      width: 100%;
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 3px;
+      margin: 7px 0 5px;
+    }
+
+    .three-seg-bar .seg {
+      background-color: #191e23;
+      border-radius: 2px;
+      height: 100%;
+      position: relative;
+    }
+
+    .bar-dot {
+      position: absolute;
+      top: 50%;
+      transform: translate(-50%, -50%);
+      width: 9px;
+      height: 9px;
+      border-radius: 50%;
+      border: 1.5px solid #111417;
+      z-index: 4;
+      transition: left 0.25s ease;
+    }
+
+    .avg-tick {
+      position: absolute;
+      top: -3px;
+      bottom: -3px;
+      width: 2px;
+      background-color: #cbd5e1;
+      z-index: 3;
+      opacity: 0.85;
+    }
+    .avg-tick::after {
+      content: 'Avg';
+      position: absolute;
+      top: -11px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 8px;
+      color: var(--text-muted);
+      letter-spacing: -0.2px;
+    }
+
+    /* Role Progress Bar */
+    .role-progress-track {
+      height: 6px;
+      background-color: #161b20;
+      border-radius: 3px;
+      overflow: hidden;
+      width: 100%;
+      border: 1px solid #303a45;
+    }
+
+    .role-progress-fill {
+      height: 100%;
+      border-radius: 2px;
+      transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    /* Lineup 5-Player Bodyshot Grid (Falcons Reference) */
+    .bodyshot-team-grid {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 6px;
+    }
+    @media (max-width: 640px) {
+      .bodyshot-team-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+
+    .teammate-card {
+      background: linear-gradient(180deg, #16212d 0%, #252b32 100%);
+      border: 1px solid var(--border);
+      border-radius: 3px;
+      overflow: hidden;
+      position: relative;
+      transition: border-color 0.15s ease, transform 0.15s ease;
+    }
+    .teammate-card:hover {
+      border-color: #4994df;
+    }
+
+    /* Trophy Shelf (.trophySection .trophyRow) */
+    .trophySection {
+      background: linear-gradient(180deg, #1d242b 0%, #252b32 100%);
+      border: 1px solid var(--border);
+      border-radius: 3px;
+      padding: 8px 10px;
+      margin-bottom: 10px;
+    }
+    .trophyRow {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      overflow-x: auto;
+      padding-bottom: 2px;
+    }
+    .trophy-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-width: 48px;
+      padding: 4px 6px;
+      border-radius: 3px;
+      background-color: #191e23;
+      border: 1px solid #323c47;
+      transition: transform 0.15s ease, border-color 0.15s ease;
+    }
+    .trophy-item:hover {
+      transform: translateY(-2px);
+      border-color: #f5a623;
+    }
+
+    /* Weapon Type Tile (.weapon-type-tile) */
+    .weapon-type-tile {
+      background-color: var(--bg-box);
+      border: 1px solid var(--border);
+      border-radius: 3px;
+      padding: 10px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+
+    /* Editable Hover Highlight (Hidden in Screenshot Mode) */
+    body:not(.screenshot-mode) .editable-zone {
+      cursor: pointer;
+      transition: outline 0.12s ease;
+    }
+    body:not(.screenshot-mode) .editable-zone:hover {
+      outline: 1px dashed rgba(73, 148, 223, 0.7);
+      outline-offset: 2px;
+    }
+
+    body.screenshot-mode .hide-in-screenshot {
+      display: none !important;
+    }
+
+    /* Custom Scrollbar */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #111417;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #2d3844;
+      border-radius: 3px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #4994df;
+    }
+
+    /* Input Styling in Studio */
+    .studio-input {
+      background-color: #14181d;
+      border: 1px solid var(--border);
+      color: #e2e8f0;
+      border-radius: 3px;
+      padding: 5px 8px;
+      font-size: 12px;
+      width: 100%;
+      transition: border-color 0.15s;
+    }
+    .studio-input:focus {
+      outline: none;
+      border-color: #4994df;
+    }
+    .studio-label {
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      margin-bottom: 3px;
+      display: block;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- TOP HLTV DESKTOP & SMARTPHONE NAVIGATION BAR -->
+  <header class="w-full bg-[#2d3844] border-b border-[#1c242c] sticky top-0 z-40 shadow-md">
+    <div class="max-w-[1088px] mx-auto px-2 h-[46px] flex items-center justify-between gap-2">
+      <!-- Left: HLTV Logo + Main Links -->
+      <div class="flex items-center h-full">
+        <!-- Mobile Sidebar Trigger inside navbar-smartphone -->
+        <button onclick="toggleMobileSidebar()" class="md:hidden mr-2 text-[#dcdcdc] hover:text-white p-1.5 rounded bg-[#1b232c] border border-[#38434f]" title="Open Navigation & Filters">
+          <i class="fa fa-bars text-sm"></i>
+        </button>
+
+        <a href="#overview" onclick="switchTab('overview'); return false;" class="flex items-center pr-3 mr-1 border-r border-[#3c4957] h-full select-none">
+          <div class="flex items-center gap-1.5">
+            <!-- HLTV Shield Mark -->
+            <svg class="w-6 h-6" viewBox="0 0 32 32" fill="none">
+              <path d="M4 5H28L25 24L16 29L7 24L4 5Z" fill="#4994df"/>
+              <path d="M16 5V29L25 24L28 5H16Z" fill="#2b6ea4"/>
+              <path d="M9 11H13V15H15V11H19V21H15V18H13V21H9V11Z" fill="#ffffff"/>
+            </svg>
+            <span class="font-oswald text-[20px] font-bold tracking-tight text-white">HLTV</span>
+          </div>
+        </a>
+
+        <nav class="hidden md:flex items-center h-full text-[12px] font-semibold text-[#dcdcdc]">
+          <a href="#news" onclick="showToast('Viewing Player Stats module'); return false;" class="px-2.5 h-full flex items-center hover:bg-[#384553] hover:text-white transition">News</a>
+          <a href="#matches" onclick="switchTab('matches'); return false;" class="px-2.5 h-full flex items-center hover:bg-[#384553] hover:text-white transition">Matches</a>
+          <a href="#results" onclick="switchTab('matches'); return false;" class="px-2.5 h-full flex items-center hover:bg-[#384553] hover:text-white transition">Results</a>
+          <a href="#events" onclick="switchTab('achievements'); return false;" class="px-2.5 h-full flex items-center hover:bg-[#384553] hover:text-white transition">Events</a>
+          <a href="#stats" onclick="switchTab('overview'); return false;" class="px-2.5 h-full flex items-center bg-[#1b1f23] text-[#4994df] border-b-2 border-[#4994df]">Stats</a>
+          <a href="#clutches" onclick="switchTab('clutches'); return false;" class="px-2.5 h-full flex items-center hover:bg-[#384553] hover:text-white transition">Clutches</a>
+          <a href="#teams" onclick="switchTab('teams'); return false;" class="px-2.5 h-full flex items-center hover:bg-[#384553] hover:text-white transition">Teams</a>
+          <a href="#weapons" onclick="switchTab('weapons'); return false;" class="px-2.5 h-full flex items-center hover:bg-[#384553] hover:text-white transition">Weapons</a>
+          <a href="#major" onclick="switchTab('achievements'); return false;" class="px-2.5 h-full flex items-center text-[#f5a623] font-bold hover:bg-[#384553] transition">Major</a>
+        </nav>
+      </div>
+
+      <!-- Right: Search + Customizer Controls -->
+      <div class="flex items-center gap-1.5 sm:gap-2">
+        <div class="relative hidden lg:block">
+          <input type="text" id="quickSearchInput" placeholder="Search player, team..." 
+                 class="bg-[#1b1f23] text-[#dcdcdc] text-[11px] rounded px-2.5 py-1.5 pr-7 w-[145px] border border-[#38434f] focus:outline-none focus:border-[#4994df]"
+                 onkeydown="if(event.key==='Enter'){ openDrawer('identity'); }" />
+          <i class="fa fa-search absolute right-2.5 top-1/2 -translate-y-1/2 text-[#87a3bf] text-[11px]"></i>
+        </div>
+
+        <!-- Preset Quick Selector -->
+        <select id="topPresetSelect" onchange="applyPreset(this.value)" 
+                class="hide-in-screenshot bg-[#1b1f23] text-[#dcdcdc] text-[11px] font-semibold px-2 py-1.5 rounded border border-[#38434f] hover:border-[#4994df] cursor-pointer focus:outline-none max-w-[125px] sm:max-w-none">
+          <option value="" disabled selected>⚡ Load Preset...</option>
+          <option value="karrigan">karrigan (0.86 Ref)</option>
+          <option value="zywoo">ZywOo (1.42 GOAT)</option>
+          <option value="m0nesy">m0NESY (1.34 AWPer)</option>
+          <option value="dream">Dream Pro (1.55 #1)</option>
+        </select>
+
+        <!-- Screenshot / Clean View Toggle -->
+        <button onclick="toggleScreenshotMode()" id="screenshotBtn"
+                title="Hide editor buttons for a 100% clean HLTV screenshot"
+                class="bg-[#1b1f23] hover:bg-[#252b32] text-[#dcdcdc] text-[11px] font-semibold px-2.5 py-1.5 rounded border border-[#38434f] flex items-center gap-1.5 transition">
+          <i class="fa fa-camera text-[#4994df]"></i>
+          <span id="screenshotBtnText" class="hidden sm:inline">Screenshot</span>
+        </button>
+
+        <!-- Customize Profile Primary Button -->
+        <button onclick="toggleDrawer()" 
+                class="hide-in-screenshot bg-[#2b6ea4] hover:bg-[#3582c0] text-white text-[11px] font-bold px-2.5 sm:px-3 py-1.5 rounded shadow flex items-center gap-1.5 transition border border-[#4994df]">
+          <i class="fa fa-sliders"></i>
+          <span>Customize</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- MOBILE SIDEBAR BACKDROP & FLOATING PULL BUTTON (.leftColPullInButton) -->
+  <div id="mobileSidebarBackdrop" onclick="toggleMobileSidebar()" class="fixed inset-0 bg-black/60 z-50 hidden md:hidden"></div>
+  <button onclick="toggleMobileSidebar()" class="leftColPullInButton hide-in-screenshot">
+    <i class="fa fa-filter"></i>
+    <span>Menu &amp; Filters</span>
+  </button>
+
+  <!-- FLOATING EXIT SCREENSHOT MODE PILL (Only visible in screenshot mode) -->
+  <div id="exitScreenshotBanner" class="hidden fixed bottom-4 right-4 z-50">
+    <button onclick="toggleScreenshotMode()" class="bg-[#252b32]/95 hover:bg-[#2d3844] text-white text-xs font-bold px-3.5 py-2 rounded-full border border-[#4994df] shadow-lg flex items-center gap-2">
+      <i class="fa fa-eye-slash text-[#4994df]"></i> Exit Screenshot Mode
+    </button>
+  </div>
+
+  <!-- MAIN 3-COLUMN HLTV LAYOUT -->
+  <main class="hltv-container">
+
+    <!-- ==================== LEFT SIDEBAR (160px) ==================== -->
+    <aside id="leftSidebarCol" class="left-col space-y-3">
+      <!-- Mobile Close Header -->
+      <div class="flex md:hidden items-center justify-between pb-2 mb-2 border-b border-[#38434f]">
+        <span class="font-bold text-xs uppercase text-[#87a3bf]">HLTV Navigation</span>
+        <button onclick="toggleMobileSidebar()" class="text-[#87a3bf] hover:text-white px-2 py-0.5 rounded bg-[#252b32]">
+          <i class="fa fa-times"></i>
+        </button>
+      </div>
+
+      <!-- Player Context Mini Box -->
+      <div class="standard-box p-2.5 editable-zone" onclick="openDrawer('identity')" title="Click to customize player identity">
+        <div class="flex items-center gap-2 mb-2">
+          <img id="sidebarPlayerImg" src="" alt="Player" class="w-9 h-9 rounded-sm object-cover object-top bg-[#121F2B] border border-[#38434f]" />
+          <div class="min-w-0">
+            <div class="flex items-center gap-1">
+              <img id="sidebarFlag" src="" alt="Flag" class="w-3.5 h-2.5 object-cover rounded-[1px]" />
+              <span id="sidebarNickname" class="font-bold text-[12px] text-white truncate">karrigan</span>
+            </div>
+            <div id="sidebarTeamName" class="text-[10px] text-[#87a3bf] truncate">FaZe Clan</div>
+          </div>
+        </div>
+        <button onclick="event.stopPropagation(); switchTab('teams'); closeMobileSidebar();" class="w-full bg-[#2d3844] hover:bg-[#374554] text-[#4994df] text-[11px] font-semibold py-1 rounded border border-[#38434f] transition">
+          Player team &amp; history
+        </button>
+      </div>
+
+      <!-- Navigation Box -->
+      <div>
+        <div class="standard-headline">Navigation</div>
+        <div class="standard-box divide-y divide-[#2d3844] text-[11px]">
+          <a href="#overview" onclick="switchTab('overview'); closeMobileSidebar(); return false;" id="sideNav-overview" class="block px-2.5 py-1.5 font-bold text-[#4994df] bg-[#191e23] hover:bg-[#2d3844]">Overview</a>
+          <div class="px-2.5 py-1.5 text-[#87a3bf] font-semibold bg-[#1b2127]">Role Attributes</div>
+          <a href="#entrying" onclick="jumpToRole('entrying'); closeMobileSidebar(); return false;" class="block pl-4 pr-2.5 py-1 text-[#dcdcdc] hover:bg-[#2d3844] hover:text-[#4994df]">Entrying</a>
+          <a href="#trading" onclick="jumpToRole('trading'); closeMobileSidebar(); return false;" class="block pl-4 pr-2.5 py-1 text-[#dcdcdc] hover:bg-[#2d3844] hover:text-[#4994df]">Trading</a>
+          <a href="#opening" onclick="jumpToRole('opening'); closeMobileSidebar(); return false;" class="block pl-4 pr-2.5 py-1 text-[#dcdcdc] hover:bg-[#2d3844] hover:text-[#4994df]">Opening</a>
+          <a href="#closing" onclick="jumpToRole('closing'); closeMobileSidebar(); return false;" class="block pl-4 pr-2.5 py-1 text-[#dcdcdc] hover:bg-[#2d3844] hover:text-[#4994df]">Closing</a>
+          <a href="#sniping" onclick="jumpToRole('sniping'); closeMobileSidebar(); return false;" class="block pl-4 pr-2.5 py-1 text-[#dcdcdc] hover:bg-[#2d3844] hover:text-[#4994df]">Sniping</a>
+          <a href="#utility" onclick="jumpToRole('utility'); closeMobileSidebar(); return false;" class="block pl-4 pr-2.5 py-1 text-[#dcdcdc] hover:bg-[#2d3844] hover:text-[#4994df]">Utility</a>
+          <a href="#clutches" onclick="switchTab('clutches'); closeMobileSidebar(); return false;" id="sideNav-clutches" class="block px-2.5 py-1.5 text-[#dcdcdc] hover:bg-[#2d3844] hover:text-[#4994df]">Clutches (1v1 - 1vX)</a>
+          <a href="#weapons" onclick="switchTab('weapons'); closeMobileSidebar(); return false;" id="sideNav-weapons" class="block px-2.5 py-1.5 text-[#dcdcdc] hover:bg-[#2d3844] hover:text-[#4994df]">Weapons</a>
+          <a href="#teams" onclick="switchTab('teams'); closeMobileSidebar(); return false;" id="sideNav-teams" class="block px-2.5 py-1.5 text-[#dcdcdc] hover:bg-[#2d3844] hover:text-[#4994df]">Teams &amp; Lineup</a>
+          <a href="#matches" onclick="switchTab('matches'); closeMobileSidebar(); return false;" id="sideNav-matches" class="block px-2.5 py-1.5 text-[#dcdcdc] hover:bg-[#2d3844] hover:text-[#4994df]">Matches Log</a>
+          <a href="#achievements" onclick="switchTab('achievements'); closeMobileSidebar(); return false;" id="sideNav-achievements" class="block px-2.5 py-1.5 text-[#dcdcdc] hover:bg-[#2d3844] hover:text-[#4994df]">Career &amp; Trophies</a>
+        </div>
+      </div>
+
+      <!-- Game Version & Match Filters Box -->
+      <div>
+        <div class="standard-headline">Filters</div>
+        <div class="standard-box p-2 space-y-2.5 text-[11px]">
+          <div>
+            <div class="text-[10px] font-bold uppercase text-[#87a3bf] mb-1">Game version</div>
+            <div class="space-y-1" id="sidebarVersionGroup">
+              <button onclick="setFilterChip('version', 'CS2')" data-val="CS2" class="w-full text-left px-2 py-1 rounded bg-[#2d3844] text-[#4994df] font-semibold flex justify-between items-center">
+                <span>Counter-Strike 2</span><i class="fa fa-check text-[10px]"></i>
+              </button>
+              <button onclick="setFilterChip('version', 'CS:GO')" data-val="CS:GO" class="w-full text-left px-2 py-1 rounded hover:bg-[#2d3844] text-[#dcdcdc] flex justify-between items-center">
+                <span>CS:GO</span>
+              </button>
+              <button onclick="setFilterChip('version', 'Both')" data-val="Both" class="w-full text-left px-2 py-1 rounded hover:bg-[#2d3844] text-[#dcdcdc] flex justify-between items-center">
+                <span>All versions</span>
+              </button>
+            </div>
+          </div>
+
+          <div class="border-t border-[#38434f] pt-2">
+            <div class="text-[10px] font-bold uppercase text-[#87a3bf] mb-1">Match type</div>
+            <div class="space-y-1" id="sidebarMatchTypeGroup">
+              <button onclick="setFilterChip('matchType', 'All')" data-val="All" class="w-full text-left px-2 py-1 rounded bg-[#2d3844] text-[#4994df] font-semibold">All matches</button>
+              <button onclick="setFilterChip('matchType', 'LAN')" data-val="LAN" class="w-full text-left px-2 py-1 rounded hover:bg-[#2d3844] text-[#dcdcdc]">LAN only</button>
+              <button onclick="setFilterChip('matchType', 'Majors')" data-val="Majors" class="w-full text-left px-2 py-1 rounded hover:bg-[#2d3844] text-[#dcdcdc]">Majors</button>
+              <button onclick="setFilterChip('matchType', 'BigEvents')" data-val="BigEvents" class="w-full text-left px-2 py-1 rounded hover:bg-[#2d3844] text-[#dcdcdc]">Big Events</button>
+            </div>
+          </div>
+
+          <div class="border-t border-[#38434f] pt-2">
+            <div class="text-[10px] font-bold uppercase text-[#87a3bf] mb-1">Time filter</div>
+            <div class="space-y-1" id="sidebarTimeGroup">
+              <button onclick="setFilterChip('time', 'All time')" data-val="All time" class="w-full text-left px-2 py-1 rounded bg-[#2d3844] text-[#4994df] font-semibold">All time</button>
+              <button onclick="setFilterChip('time', '2026')" data-val="2026" class="w-full text-left px-2 py-1 rounded hover:bg-[#2d3844] text-[#dcdcdc]">2026</button>
+              <button onclick="setFilterChip('time', '2025')" data-val="2025" class="w-full text-left px-2 py-1 rounded hover:bg-[#2d3844] text-[#dcdcdc]">2025</button>
+              <button onclick="setFilterChip('time', 'Last 3 months')" data-val="Last 3 months" class="w-full text-left px-2 py-1 rounded hover:bg-[#2d3844] text-[#dcdcdc]">Last 3 months</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- ==================== CENTER MAIN COLUMN (660px) ==================== -->
+    <section class="center-col min-w-0">
+
+      <!-- TOP TROPHY CABINET SHELF (.trophySection .trophyRow) -->
+      <div class="trophySection editable-zone" onclick="openDrawer('achievements')" title="Click to add, edit or delete trophies in the Trophy Cabinet">
+        <div class="flex items-center justify-between mb-1.5">
+          <div class="flex items-center gap-2">
+            <span class="text-[10px] font-bold uppercase tracking-wider text-[#87a3bf]"><i class="fa fa-trophy text-[#f5a623] mr-1"></i>Trophy Cabinet</span>
+            <span id="topShelfSummaryBadges" class="text-[10px] text-[#dcdcdc] font-semibold"></span>
+          </div>
+          <span class="hide-in-screenshot text-[10px] text-[#4994df] hover:underline font-semibold"><i class="fa fa-pencil"></i> Edit Trophies</span>
+        </div>
+        <div id="topTrophyShelfRow" class="trophyRow">
+          <!-- Populated dynamically via renderAchievementsTab() -->
+        </div>
+      </div>
+
+      <!-- Context Top Tabs Bar (.tabs .tab-holder) -->
+      <div class="standard-box mb-2.5 flex items-center overflow-x-auto border-b border-[#38434f] bg-[#252b32]">
+        <button onclick="switchTab('overview')" id="tabBtn-overview" class="px-3.5 py-2.5 text-[12px] font-bold text-[#4994df] border-b-2 border-[#4994df] bg-[#191e23] whitespace-nowrap transition flex items-center gap-1.5">
+          <span>Overview</span>
+        </button>
+        <button onclick="switchTab('clutches')" id="tabBtn-clutches" class="px-3.5 py-2.5 text-[12px] font-semibold text-[#87a3bf] hover:text-white border-b-2 border-transparent whitespace-nowrap transition flex items-center gap-1.5">
+          <span>Clutches</span>
+          <span id="tabClutchesBadge" class="bg-[#191e23] text-[#04bc6c] text-[10px] px-1.5 py-0.2 rounded font-bold">121</span>
+        </button>
+        <button onclick="switchTab('weapons')" id="tabBtn-weapons" class="px-3.5 py-2.5 text-[12px] font-semibold text-[#87a3bf] hover:text-white border-b-2 border-transparent whitespace-nowrap transition flex items-center gap-1.5">
+          <span>Weapons</span>
+          <span id="tabWeaponsBadge" class="bg-[#191e23] text-[#dcdcdc] text-[10px] px-1.5 py-0.2 rounded">34</span>
+        </button>
+        <button onclick="switchTab('teams')" id="tabBtn-teams" class="px-3.5 py-2.5 text-[12px] font-semibold text-[#87a3bf] hover:text-white border-b-2 border-transparent whitespace-nowrap transition flex items-center gap-1.5">
+          <span>Teams</span>
+          <span id="tabTeamsBadge" class="bg-[#191e23] text-[#dcdcdc] text-[10px] px-1.5 py-0.2 rounded">14</span>
+        </button>
+        <button onclick="switchTab('matches')" id="tabBtn-matches" class="px-3.5 py-2.5 text-[12px] font-semibold text-[#87a3bf] hover:text-white border-b-2 border-transparent whitespace-nowrap transition flex items-center gap-1.5">
+          <span>Matches</span>
+        </button>
+        <button onclick="switchTab('achievements')" id="tabBtn-achievements" class="px-3.5 py-2.5 text-[12px] font-semibold text-[#87a3bf] hover:text-white border-b-2 border-transparent whitespace-nowrap transition flex items-center gap-1.5">
+          <i class="fa fa-trophy text-[#f5a623] text-[11px]"></i>
+          <span>Achievements</span>
+        </button>
+      </div>
+
+      <!-- Interactive Match Filters Bar (Exact HLTV Filter Pills) -->
+      <div class="standard-box p-2 mb-3 flex flex-wrap items-center gap-1.5 text-[11px] bg-[#1d2329]">
+        <div class="flex items-center bg-[#252b32] border border-[#38434f] rounded px-2 py-1">
+          <span class="text-[#87a3bf] mr-1">Event:</span>
+          <select onchange="setFilterChip('event', this.value)" class="bg-transparent text-white font-semibold focus:outline-none cursor-pointer">
+            <option value="All" class="bg-[#252b32]">All</option>
+            <option value="Majors" class="bg-[#252b32]">Majors</option>
+            <option value="IEM" class="bg-[#252b32]">IEM Cologne / Katowice</option>
+            <option value="BLAST" class="bg-[#252b32]">BLAST Premier</option>
+          </select>
+        </div>
+
+        <div class="flex items-center bg-[#252b32] border border-[#38434f] rounded px-2 py-1">
+          <span class="text-[#87a3bf] mr-1">Type:</span>
+          <select id="chipMatchType" onchange="setFilterChip('matchType', this.value)" class="bg-transparent text-white font-semibold focus:outline-none cursor-pointer">
+            <option value="All" class="bg-[#252b32]">All</option>
+            <option value="LAN" class="bg-[#252b32]">LAN</option>
+            <option value="Majors" class="bg-[#252b32]">Majors</option>
+            <option value="BigEvents" class="bg-[#252b32]">Big Events</option>
+          </select>
+        </div>
+
+        <div class="flex items-center bg-[#252b32] border border-[#38434f] rounded px-2 py-1">
+          <span class="text-[#87a3bf] mr-1">Time:</span>
+          <select id="chipTime" onchange="setFilterChip('time', this.value)" class="bg-transparent text-white font-semibold focus:outline-none cursor-pointer">
+            <option value="All time" class="bg-[#252b32]">All time</option>
+            <option value="2026" class="bg-[#252b32]">2026</option>
+            <option value="2025" class="bg-[#252b32]">2025</option>
+            <option value="Last 3 months" class="bg-[#252b32]">Last 3 months</option>
+          </select>
+        </div>
+
+        <div class="flex items-center bg-[#252b32] border border-[#38434f] rounded px-2 py-1">
+          <span class="text-[#87a3bf] mr-1">Version:</span>
+          <select id="chipVersion" onchange="setFilterChip('version', this.value)" class="bg-transparent text-[#4994df] font-bold focus:outline-none cursor-pointer">
+            <option value="CS2" class="bg-[#252b32]">CS2</option>
+            <option value="CS:GO" class="bg-[#252b32]">CS:GO</option>
+            <option value="Both" class="bg-[#252b32]">Both</option>
+          </select>
+        </div>
+
+        <div class="flex items-center bg-[#252b32] border border-[#4994df]/40 rounded px-2 py-1 ml-auto">
+          <span class="text-[#87a3bf] mr-1">Compared to:</span>
+          <select id="chipComparedTo" onchange="updateComparedTo(this.value)" class="bg-transparent text-[#4994df] font-bold focus:outline-none cursor-pointer">
+            <option value="IGLs" class="bg-[#252b32]">IGLs</option>
+            <option value="Everyone" class="bg-[#252b32]">Everyone</option>
+            <option value="Riflers" class="bg-[#252b32]">Riflers</option>
+            <option value="AWPers" class="bg-[#252b32]">AWPers</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- ============================================================== -->
+      <!-- TAB 1: OVERVIEW (PLAYER SUMMARY + ROLE STATS + CLUTCH PREVIEW) -->
+      <!-- ============================================================== -->
+      <div id="tabContent-overview" class="space-y-3">
+
+        <!-- PLAYER SUMMARY STAT BOX -->
+        <div class="player-summary-stat-box">
+
+          <!-- LEFT CARD: Photo, Flag, Team, Nickname, Full Name, Age, Prize Money -->
+          <div class="player-left-card editable-zone" onclick="openDrawer('identity')" title="Click to customize Player Photo, Name, Flag, Team & Prize Money">
+            <div class="team-glow-backdrop"></div>
+            <svg class="team-stripes-svg" viewBox="0 0 250 300" preserveAspectRatio="none">
+              <polygon points="-40,60 280,-30 280,45 -40,135" fill="var(--teamColor)" />
+              <polygon points="-40,165 280,75 280,115 -40,205" fill="var(--teamColor)" />
+            </svg>
+
+            <!-- Top Flag + Current Team Banner -->
+            <div class="relative z-10 flex items-center justify-between px-3 pt-3">
+              <div class="flex items-center gap-1.5 bg-[#0d141c]/85 px-2 py-1 rounded border border-[#38434f]">
+                <img id="mainFlagImg" src="" alt="Flag" class="w-4 h-3 object-cover rounded-[1px]" />
+                <span id="mainCountryName" class="text-[10px] font-semibold text-[#dcdcdc]">Denmark</span>
+              </div>
+              <div class="flex items-center gap-1.5 bg-[#0d141c]/85 px-2 py-1 rounded border border-[#38434f]" onclick="event.stopPropagation(); switchTab('teams');">
+                <img id="mainTeamLogo" src="" alt="Team" class="w-4 h-4 object-contain" />
+                <span id="mainTeamName" class="text-[11px] font-bold text-white hover:text-[#4994df]">FaZe Clan</span>
+              </div>
+            </div>
+
+            <!-- Center Player Cutout Bodyshot Image -->
+            <div class="relative z-10 flex justify-center items-end pt-2 px-4 h-[175px] overflow-hidden">
+              <img id="mainPlayerPhoto" src="" alt="Player Cutout" 
+                   class="max-h-[170px] w-auto object-contain object-bottom drop-shadow-[0_8px_14px_rgba(0,0,0,0.75)] transition-transform duration-200 hover:scale-[1.02]" />
+            </div>
+
+            <!-- Bottom Overlay: Nickname, Real Name, Age, Prize Money, Profile Link -->
+            <div class="relative z-10 bg-gradient-to-t from-[#0b1118] via-[#0e1720]/95 to-transparent px-3.5 pt-3 pb-2.5 border-t border-[#283544]">
+              <div class="flex items-baseline justify-between gap-2">
+                <h1 id="mainNickname" class="font-oswald text-[26px] font-bold leading-none text-white tracking-wide truncate">karrigan</h1>
+                <span id="mainAge" class="text-[11px] font-semibold text-[#87a3bf] whitespace-nowrap">35 years</span>
+              </div>
+              <div class="flex items-center justify-between mt-1">
+                <div id="mainRealName" class="text-[11px] text-[#87a3bf] truncate">Finn Andersen</div>
+                <div id="mainRoleBadge" class="text-[10px] font-bold uppercase px-1.5 py-0.5 rounded bg-[#252b32] text-[#4994df] border border-[#38434f]">IGL</div>
+              </div>
+
+              <!-- Career Prize Money & Top 20 Quick Bar -->
+              <div class="mt-2 pt-2 border-t border-[#1e2936] flex items-center justify-between text-[11px]">
+                <div class="flex items-center gap-1.5" title="Total Career Prize Money">
+                  <i class="fa fa-money text-[#04bc6c]"></i>
+                  <span class="text-[#87a3bf]">Prize:</span>
+                  <span id="mainPrizeMoney" class="font-bold text-white">$2,145,800</span>
+                </div>
+                <span id="mainTop20Badge" class="text-[10px] font-bold text-[#f5a623] bg-[#f5a623]/10 px-1.5 py-0.5 rounded border border-[#f5a623]/30">Top 20: #8</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- RIGHT CARD: Maps, Checkboxes, T/CT Shields, Rating 3.0 Gauge, 6 Core Stat Bars -->
+          <div class="p-3 flex flex-col justify-between bg-[#252b32]">
+
+            <!-- Top Controls Row: Maps Count + Show Player Average + Eco-adjust -->
+            <div class="flex flex-wrap items-center justify-between gap-2 pb-2 border-b border-[#38434f] text-[11px]">
+              <div class="editable-zone flex items-center gap-1.5" onclick="openDrawer('coreStats')" title="Click to change Maps count">
+                <span class="font-bold text-white" id="mainMapsCount">607</span>
+                <span class="text-[#87a3bf]">maps</span>
+                <span id="comparedToLabel" class="text-[10px] text-[#87a3bf] bg-[#191e23] px-1.5 py-0.5 rounded border border-[#38434f]">vs. IGLs</span>
+              </div>
+
+              <div class="flex items-center gap-3 text-[11px] text-[#dcdcdc]">
+                <label class="flex items-center gap-1.5 cursor-pointer select-none hover:text-white">
+                  <input type="checkbox" id="chkShowAvg" onchange="toggleShowAvg(this.checked)" class="accent-[#4994df] rounded cursor-pointer" />
+                  <span>Show player average</span>
+                </label>
+                <label class="flex items-center gap-1.5 cursor-pointer select-none hover:text-white">
+                  <input type="checkbox" id="chkEcoAdjust" onchange="toggleEcoAdjust(this.checked)" class="accent-[#4994df] rounded cursor-pointer" />
+                  <span>Eco-adjust</span>
+                </label>
+              </div>
+            </div>
+
+            <!-- Middle Row: T Rating Shield | Rating 3.0 Semi-Circular Gauge | CT Rating Shield -->
+            <div class="grid grid-cols-3 items-center my-2 py-1 editable-zone" onclick="openDrawer('coreStats')" title="Click to edit Rating 3.0, T Rating & CT Rating">
+
+              <!-- Left: T-Side Rating Shield -->
+              <div class="flex flex-col items-center justify-center">
+                <div class="relative w-14 h-16 flex flex-col items-center justify-center">
+                  <svg class="w-full h-full absolute inset-0" viewBox="0 0 60 68" fill="none">
+                    <path d="M30 3L54 11V32C54 48 43.5 59.5 30 65C16.5 59.5 6 48 6 32V11L30 3Z" fill="#191e23" stroke="#d97706" stroke-width="2"/>
+                    <path d="M30 7L50 13.5V31.5C50 45 41 55 30 60C19 55 10 45 10 31.5V13.5L30 7Z" fill="#f59e0b" fill-opacity="0.08"/>
+                  </svg>
+                  <span id="tRatingValue" class="relative z-10 font-oswald text-[19px] font-bold leading-none text-[#ff4e4e]">0.82</span>
+                  <span class="relative z-10 text-[9px] font-bold uppercase text-[#f59e0b] mt-0.5">T side</span>
+                </div>
+                <span class="text-[10px] font-semibold text-[#87a3bf] mt-1">T Rating</span>
+              </div>
+
+              <!-- Center: Semi-Circular Rating 3.0 Gauge -->
+              <div class="flex flex-col items-center justify-center relative">
+                <div class="relative w-[138px] h-[78px] flex items-end justify-center">
+                  <svg class="w-[138px] h-[78px] overflow-visible" viewBox="0 0 140 78">
+                    <path d="M 14 68 A 56 56 0 0 1 126 68" fill="none" stroke="#191e23" stroke-width="10" stroke-linecap="round" />
+                    <path id="ratingGaugeArc" d="M 14 68 A 56 56 0 0 1 126 68" fill="none" stroke="#ff4e4e" stroke-width="10" stroke-linecap="round"
+                          stroke-dasharray="176" stroke-dashoffset="110" style="transition: stroke-dashoffset 0.35s ease, stroke 0.35s ease;" />
+                  </svg>
+                  <div class="absolute bottom-0 flex flex-col items-center">
+                    <span id="mainRatingValue" class="font-oswald text-[32px] font-bold leading-none text-white">0.86</span>
+                    <span id="mainRatingBand" class="text-[10px] font-bold uppercase tracking-wider text-[#ff4e4e] mt-0.5">Poor</span>
+                  </div>
+                </div>
+                <div class="flex items-center gap-1 mt-1">
+                  <span class="text-[11px] font-bold text-[#dcdcdc]">Rating 3.0</span>
+                  <span id="ecoBadge" class="hidden text-[9px] bg-[#4994df]/20 text-[#4994df] border border-[#4994df]/40 px-1 rounded font-bold">ECO</span>
+                </div>
+              </div>
+
+              <!-- Right: CT-Side Rating Shield -->
+              <div class="flex flex-col items-center justify-center">
+                <div class="relative w-14 h-16 flex flex-col items-center justify-center">
+                  <svg class="w-full h-full absolute inset-0" viewBox="0 0 60 68" fill="none">
+                    <path d="M30 3L54 11V32C54 48 43.5 59.5 30 65C16.5 59.5 6 48 6 32V11L30 3Z" fill="#191e23" stroke="#3b82f6" stroke-width="2"/>
+                    <path d="M30 7L50 13.5V31.5C50 45 41 55 30 60C19 55 10 45 10 31.5V13.5L30 7Z" fill="#3b82f6" fill-opacity="0.08"/>
+                  </svg>
+                  <span id="ctRatingValue" class="relative z-10 font-oswald text-[19px] font-bold leading-none text-[#ff4e4e]">0.90</span>
+                  <span class="relative z-10 text-[9px] font-bold uppercase text-[#60a5fa] mt-0.5">CT side</span>
+                </div>
+                <span class="text-[10px] font-semibold text-[#87a3bf] mt-1">CT Rating</span>
+              </div>
+
+            </div>
+
+            <!-- Bottom 6 Mini Stat Cards Grid (Round swing, DPR, KAST, Multi-kill, ADR, KPR) -->
+            <div id="coreMiniStatsGrid" class="grid grid-cols-2 sm:grid-cols-3 gap-2 pt-2 border-t border-[#38434f] editable-zone" onclick="openDrawer('coreStats')" title="Click to customize Round Swing, DPR, KAST, Multi-kill, ADR & KPR">
+              <!-- Populated dynamically via JS -->
+            </div>
+
+          </div>
+        </div>
+
+        <!-- ROLE STATS CONTAINER (Firepower + 6 Role Attributes) -->
+        <div class="standard-box p-3 role-stats-container">
+          <div class="flex flex-wrap items-center justify-between gap-2 pb-2.5 mb-3 border-b border-[#38434f]">
+            <div class="flex items-center gap-2">
+              <span class="text-[12px] font-bold uppercase tracking-wide text-white">Role stats</span>
+              <button onclick="toggleAllRoleDetails()" id="expandAllRolesBtn" class="text-[10px] text-[#4994df] hover:underline font-semibold">
+                Expand all details
+              </button>
+            </div>
+
+            <!-- Side Filter Buttons -->
+            <div class="flex items-center bg-[#191e23] p-0.5 rounded border border-[#38434f] text-[11px]">
+              <button onclick="setRoleSide('combined')" id="roleSideBtn-combined" class="px-2.5 py-1 rounded font-bold bg-[#2d3844] text-white transition">Combined</button>
+              <button onclick="setRoleSide('ct')" id="roleSideBtn-ct" class="px-2.5 py-1 rounded font-semibold text-[#60a5fa] hover:bg-[#252b32] transition">CT side</button>
+              <button onclick="setRoleSide('t')" id="roleSideBtn-t" class="px-2.5 py-1 rounded font-semibold text-[#f59e0b] hover:bg-[#252b32] transition">T side</button>
+            </div>
+          </div>
+
+          <!-- FULL-WIDTH FIREPOWER CARD -->
+          <div id="roleCard-firepower" class="bg-[#191e23] border border-[#38434f] rounded p-3 mb-3"></div>
+
+          <!-- 2-COLUMN GRID FOR THE 6 OTHER ROLE ATTRIBUTES -->
+          <div id="sixRolesGrid" class="grid grid-cols-1 md:grid-cols-2 gap-3"></div>
+        </div>
+
+        <!-- OVERVIEW CLUTCH SUMMARY PREVIEW BOX (1vX + 1v1..1v5 Quick Strip) -->
+        <div class="standard-box p-3 editable-zone" onclick="openDrawer('clutches')" title="Click to customize 1v1, 1v2, 1v3, 1v4, 1v5 Clutches">
+          <div class="flex items-center justify-between pb-2 mb-2.5 border-b border-[#38434f]">
+            <div class="flex items-center gap-2">
+              <span class="text-[12px] font-bold uppercase tracking-wide text-white">Clutches Breakdown (1vX &amp; 1v1 - 1v5)</span>
+            </div>
+            <button onclick="event.stopPropagation(); switchTab('clutches');" class="text-[11px] text-[#4994df] hover:underline font-semibold flex items-center gap-1">
+              <span>Full Clutches Tab</span> <i class="fa fa-angle-right"></i>
+            </button>
+          </div>
+          <div id="overviewClutchStrip" class="grid grid-cols-2 sm:grid-cols-6 gap-2">
+            <!-- Populated dynamically via renderClutchesTab() -->
+          </div>
+        </div>
+
+      </div>
+
+      <!-- ============================================================== -->
+      <!-- TAB 2: CLUTCHES (1vX COMBINED + SEPARATE 1v1, 1v2, 1v3, 1v4, 1v5) -->
+      <!-- ============================================================== -->
+      <div id="tabContent-clutches" class="hidden space-y-3">
+        <div class="standard-headline">
+          <span>Clutch performance &amp; 1vX breakdown</span>
+          <button onclick="openDrawer('clutches')" class="hide-in-screenshot text-[#4994df] hover:underline text-[10px] lowercase font-semibold">
+            <i class="fa fa-pencil"></i> edit 1v1 - 1v5 won &amp; failed counts
+          </button>
+        </div>
+
+        <!-- Top 1vX Combined Hero Summary Banner -->
+        <div id="clutchHero1vX" class="standard-box p-3.5 bg-gradient-to-r from-[#1d2630] via-[#252b32] to-[#1d2630] editable-zone" onclick="openDrawer('clutches')">
+          <!-- Populated dynamically via renderClutchesTab() -->
+        </div>
+
+        <!-- 5 Separate Cards for 1v1, 1v2, 1v3, 1v4, 1v5 -->
+        <div id="clutchCardsGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5 editable-zone" onclick="openDrawer('clutches')">
+          <!-- Populated dynamically via renderClutchesTab() -->
+        </div>
+
+        <!-- Notable Clutches History Log -->
+        <div class="standard-box overflow-hidden">
+          <div class="px-3 py-2 bg-[#2d3844] border-b border-[#38434f] flex items-center justify-between">
+            <span class="font-bold text-[11px] uppercase text-white">Notable Clutches Log</span>
+            <button onclick="addClutchLogItem()" class="hide-in-screenshot text-[11px] text-[#04bc6c] hover:underline font-bold">
+              + Add Clutch Highlight
+            </button>
+          </div>
+          <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse text-[11px]">
+              <thead>
+                <tr class="bg-[#191e23] text-[#87a3bf] border-b border-[#38434f] text-[10px] uppercase">
+                  <th class="py-2 px-3">Date</th>
+                  <th class="py-2 px-2">Opponent</th>
+                  <th class="py-2 px-2">Event</th>
+                  <th class="py-2 px-2">Map</th>
+                  <th class="py-2 px-2 text-center">Situation</th>
+                  <th class="py-2 px-3 text-right">Outcome</th>
+                  <th class="py-2 px-2 text-right hide-in-screenshot">Del</th>
+                </tr>
+              </thead>
+              <tbody id="clutchLogTableBody" class="divide-y divide-[#2d3844]">
+                <!-- Populated dynamically via renderClutchesTab() -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ============================================================== -->
+      <!-- TAB 3: WEAPONS (ALL 34 CS2 WEAPONS, KILLS, ROUNDS CARRIED)     -->
+      <!-- ============================================================== -->
+      <div id="tabContent-weapons" class="hidden space-y-3">
+
+        <div class="standard-headline">
+          <span>Weapon category breakdown (CS2)</span>
+          <button onclick="openDrawer('weapons')" class="hide-in-screenshot text-[#4994df] hover:underline text-[10px] lowercase font-semibold">
+            <i class="fa fa-pencil"></i> edit all 34 weapons &amp; rounds carried
+          </button>
+        </div>
+
+        <!-- 6 Weapon Category Tiles (.weapon-type-tile: Rifles, Snipers, SMGs, Pistols, Grenades, Other) -->
+        <div id="weaponCategoriesGrid" class="grid grid-cols-2 sm:grid-cols-3 gap-2 editable-zone" onclick="openDrawer('weapons')">
+          <!-- Populated dynamically via renderWeaponsTab() -->
+        </div>
+
+        <!-- Interactive Category Filter Pills for Bar Charts -->
+        <div class="standard-box p-2.5 flex flex-wrap items-center justify-between gap-2 bg-[#191e23]">
+          <span class="text-[11px] font-bold uppercase text-[#87a3bf]">Filter Charts by Category:</span>
+          <div id="weaponCategoryFilterBtns" class="flex flex-wrap items-center gap-1.5">
+            <!-- Populated dynamically via renderWeaponsTab() -->
+          </div>
+        </div>
+
+        <!-- Dual Horizontal Bar Charts: 1) Kills by Weapon & 2) Weapons Carried (Rounds) -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-3">
+          <!-- Kills by weapon -->
+          <div class="standard-box p-3">
+            <div class="flex items-center justify-between pb-2 mb-3 border-b border-[#38434f]">
+              <span class="font-bold text-[11px] uppercase text-white">Kills by weapon</span>
+              <span id="totalWeaponKillsLabel" class="text-[11px] text-[#87a3bf]">Total: <strong class="text-white">6,600</strong></span>
+            </div>
+            <div id="topWeaponsBars" class="space-y-2">
+              <!-- Populated dynamically via renderWeaponsTab() -->
+            </div>
+          </div>
+
+          <!-- Weapons carried (rounds) -->
+          <div class="standard-box p-3">
+            <div class="flex items-center justify-between pb-2 mb-3 border-b border-[#38434f]">
+              <span class="font-bold text-[11px] uppercase text-white">Weapons carried (Rounds)</span>
+              <span id="totalWeaponRoundsLabel" class="text-[11px] text-[#87a3bf]">Rounds: <strong class="text-white">12,553</strong></span>
+            </div>
+            <div id="topWeaponsCarriedBars" class="space-y-2">
+              <!-- Populated dynamically via renderWeaponsTab() -->
+            </div>
+          </div>
+        </div>
+
+        <!-- Extended Weapon Overview (All 34 CS2 Weapons in 2 Columns) -->
+        <div class="standard-box p-3">
+          <div class="flex items-center justify-between pb-2 mb-2.5 border-b border-[#38434f]">
+            <span class="font-bold text-[11px] uppercase text-white">Extended weapon overview (All CS2 Weapons)</span>
+            <button onclick="openDrawer('weapons')" class="hide-in-screenshot text-[11px] text-[#04bc6c] hover:underline font-bold">+ Add / Edit Weapons</button>
+          </div>
+          <div id="extendedWeaponsGrid" class="columns grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-1 text-[11px]">
+            <!-- Populated dynamically via renderWeaponsTab() -->
+          </div>
+        </div>
+
+      </div>
+
+      <!-- ============================================================== -->
+      <!-- TAB 4: TEAMS & LINEUP (CAREER COUNTERS + 5-PLAYER LINEUP)      -->
+      <!-- ============================================================== -->
+      <div id="tabContent-teams" class="hidden space-y-3">
+
+        <div>
+          <div class="standard-headline">
+            <span>Team career overview</span>
+            <button onclick="openDrawer('teams')" class="hide-in-screenshot text-[#4994df] hover:underline text-[10px] lowercase font-semibold">
+              <i class="fa fa-pencil"></i> edit career totals &amp; teammates
+            </button>
+          </div>
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 editable-zone" onclick="openDrawer('teams')" title="Click to customize Teams count, Days in current team, Days in teams & Prize Money">
+            <div class="standard-box p-3 text-center bg-gradient-to-b from-[#2d3844] to-[#252b32]">
+              <div id="statTeamsCount" class="font-oswald text-[26px] font-bold text-white leading-tight">14</div>
+              <div class="text-[10px] font-bold uppercase text-[#87a3bf] mt-0.5">Teams</div>
+            </div>
+            <div class="standard-box p-3 text-center bg-gradient-to-b from-[#2d3844] to-[#252b32]">
+              <div id="statDaysCurrentTeam" class="font-oswald text-[26px] font-bold text-[#4994df] leading-tight">1,512</div>
+              <div class="text-[10px] font-bold uppercase text-[#87a3bf] mt-0.5">Days in current team</div>
+            </div>
+            <div class="standard-box p-3 text-center bg-gradient-to-b from-[#2d3844] to-[#252b32]">
+              <div id="statDaysInTeams" class="font-oswald text-[26px] font-bold text-white leading-tight">5,490</div>
+              <div class="text-[10px] font-bold uppercase text-[#87a3bf] mt-0.5">Days in teams</div>
+            </div>
+            <div class="standard-box p-3 text-center bg-gradient-to-b from-[#2d3844] to-[#252b32]">
+              <div id="statTeamsPrizeMoney" class="font-oswald text-[26px] font-bold text-[#04bc6c] leading-tight">$2,145,800</div>
+              <div class="text-[10px] font-bold uppercase text-[#87a3bf] mt-0.5">Total prize money</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- CURRENT TEAM 5-PLAYER LINEUP (Falcons Overview Style `bodyshot-team`) -->
+        <div class="standard-box p-3">
+          <div class="flex flex-wrap items-center justify-between gap-2 pb-2.5 mb-3 border-b border-[#38434f]">
+            <div class="flex items-center gap-2">
+              <img id="lineupTeamLogo" src="" alt="Team" class="w-5 h-5 object-contain" />
+              <span id="lineupTeamTitle" class="font-bold text-[13px] text-white">FaZe Clan — Active Lineup</span>
+            </div>
+            <button onclick="openDrawer('teams')" class="hide-in-screenshot bg-[#2d3844] hover:bg-[#384654] text-[#4994df] text-[11px] font-bold px-2.5 py-1 rounded border border-[#38434f]">
+              <i class="fa fa-users mr-1"></i> Customize Teammates
+            </button>
+          </div>
+
+          <div id="fivePlayerLineupGrid" class="bodyshot-team-grid"></div>
+        </div>
+
+        <!-- TEAMMATES DETAILED STATS TABLE -->
+        <div class="standard-box overflow-hidden">
+          <div class="px-3 py-2 bg-[#2d3844] border-b border-[#38434f] flex items-center justify-between">
+            <span class="font-bold text-[11px] uppercase text-white">Current Teammates &amp; Rating 3.0 Breakdown</span>
+            <button onclick="addNewTeammate()" class="hide-in-screenshot text-[11px] text-[#04bc6c] hover:underline font-bold">
+              + Add Teammate
+            </button>
+          </div>
+          <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse text-[11px]">
+              <thead>
+                <tr class="bg-[#191e23] text-[#87a3bf] border-b border-[#38434f] text-[10px] uppercase">
+                  <th class="py-2 px-3">Player</th>
+                  <th class="py-2 px-2">Role</th>
+                  <th class="py-2 px-2 text-center">Maps Together</th>
+                  <th class="py-2 px-2 text-center">Days Together</th>
+                  <th class="py-2 px-3 text-right">Rating 3.0</th>
+                  <th class="py-2 px-2 text-right hide-in-screenshot">Action</th>
+                </tr>
+              </thead>
+              <tbody id="teammatesTableBody" class="divide-y divide-[#2d3844]"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- CAREER TEAM HISTORY TABLE -->
+        <div class="standard-box overflow-hidden">
+          <div class="px-3 py-2 bg-[#2d3844] border-b border-[#38434f] flex items-center justify-between">
+            <span class="font-bold text-[11px] uppercase text-white">Team History</span>
+            <button onclick="addTeamHistoryEntry()" class="hide-in-screenshot text-[11px] text-[#4994df] hover:underline font-bold">
+              + Add Past Team
+            </button>
+          </div>
+          <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse text-[11px]">
+              <thead>
+                <tr class="bg-[#191e23] text-[#87a3bf] border-b border-[#38434f] text-[10px] uppercase">
+                  <th class="py-2 px-3">Period</th>
+                  <th class="py-2 px-3">Team</th>
+                  <th class="py-2 px-2 text-center">Days</th>
+                  <th class="py-2 px-2 text-center">Maps</th>
+                  <th class="py-2 px-3 text-right">Rating 3.0</th>
+                </tr>
+              </thead>
+              <tbody id="teamHistoryTableBody" class="divide-y divide-[#2d3844]"></tbody>
+            </table>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- ============================================================== -->
+      <!-- TAB 5: MATCHES (FULLY CUSTOMIZABLE MATCH LOG)                  -->
+      <!-- ============================================================== -->
+      <div id="tabContent-matches" class="hidden space-y-3">
+        <div class="standard-box overflow-hidden">
+          <div class="px-3 py-2.5 bg-[#2d3844] border-b border-[#38434f] flex flex-wrap items-center justify-between gap-2">
+            <div>
+              <span class="font-bold text-[12px] uppercase text-white">Match History Log (CS2)</span>
+              <span class="text-[11px] text-[#87a3bf] ml-2">Click any row or button to customize matches</span>
+            </div>
+            <div class="flex items-center gap-2 hide-in-screenshot">
+              <button onclick="addNewMatchRow()" class="bg-[#04bc6c]/20 hover:bg-[#04bc6c]/30 text-[#04bc6c] border border-[#04bc6c]/40 text-[11px] font-bold px-2.5 py-1 rounded">
+                + Add Match
+              </button>
+              <button onclick="openDrawer('matches')" class="bg-[#252b32] hover:bg-[#191e23] text-[#4994df] border border-[#38434f] text-[11px] font-bold px-2.5 py-1 rounded">
+                <i class="fa fa-pencil mr-1"></i> Edit Matches in Studio
+              </button>
+            </div>
+          </div>
+          <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse text-[11px]">
+              <thead>
+                <tr class="bg-[#191e23] text-[#87a3bf] border-b border-[#38434f] text-[10px] uppercase">
+                  <th class="py-2 px-2.5">Date</th>
+                  <th class="py-2 px-2">Team</th>
+                  <th class="py-2 px-2">Opponent</th>
+                  <th class="py-2 px-2">Event</th>
+                  <th class="py-2 px-2">Map</th>
+                  <th class="py-2 px-2 text-center">Score</th>
+                  <th class="py-2 px-2 text-center">K - D</th>
+                  <th class="py-2 px-1.5 text-center">+/-</th>
+                  <th class="py-2 px-1.5 text-center">ADR</th>
+                  <th class="py-2 px-2.5 text-right">Rating 3.0</th>
+                  <th class="py-2 px-2 text-right hide-in-screenshot">Edit</th>
+                </tr>
+              </thead>
+              <tbody id="matchesTableBody" class="divide-y divide-[#2d3844]">
+                <!-- Populated dynamically via renderMatchesTab() -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ============================================================== -->
+      <!-- TAB 6: ACHIEVEMENTS & TROPHY CABINET (FULLY CUSTOMIZABLE)      -->
+      <!-- ============================================================== -->
+      <div id="tabContent-achievements" class="hidden space-y-3">
+        <div class="standard-headline">
+          <span>Career honours, medals &amp; tournament achievements</span>
+          <button onclick="openDrawer('achievements')" class="hide-in-screenshot text-[#4994df] hover:underline text-[10px] lowercase font-semibold">
+            <i class="fa fa-pencil"></i> customize trophies, medals &amp; placements
+          </button>
+        </div>
+
+        <!-- 6 Summary Highlights (Majors, Big Events, MVPs, EVPs, Top 20, Prize Money) -->
+        <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2 editable-zone" onclick="openDrawer('achievements')">
+          <div class="standard-box p-2.5 text-center">
+            <div id="trophyMajorsCount" class="font-oswald text-[24px] font-bold text-[#f5a623]">1</div>
+            <div class="text-[10px] font-bold uppercase text-[#87a3bf]">Majors Won</div>
+          </div>
+          <div class="standard-box p-2.5 text-center">
+            <div id="trophyBigEventsCount" class="font-oswald text-[24px] font-bold text-white">21</div>
+            <div class="text-[10px] font-bold uppercase text-[#87a3bf]">Big Events</div>
+          </div>
+          <div class="standard-box p-2.5 text-center">
+            <div id="trophyMvpsCount" class="font-oswald text-[24px] font-bold text-[#4994df]">2</div>
+            <div class="text-[10px] font-bold uppercase text-[#87a3bf]">HLTV MVPs</div>
+          </div>
+          <div class="standard-box p-2.5 text-center">
+            <div id="trophyEvpsCount" class="font-oswald text-[24px] font-bold text-[#36a2eb]">14</div>
+            <div class="text-[10px] font-bold uppercase text-[#87a3bf]">EVP Mentions</div>
+          </div>
+          <div class="standard-box p-2.5 text-center">
+            <div id="trophyTop20Text" class="font-oswald text-[20px] font-bold text-[#f5a623] leading-[33px] truncate">#8 (2025)</div>
+            <div class="text-[10px] font-bold uppercase text-[#87a3bf]">Top 20 Peak</div>
+          </div>
+          <div class="standard-box p-2.5 text-center">
+            <div id="trophyPrizeTotal" class="font-oswald text-[20px] font-bold text-[#04bc6c] leading-[33px] truncate">$2,145,800</div>
+            <div class="text-[10px] font-bold uppercase text-[#87a3bf]">Prize Money</div>
+          </div>
+        </div>
+
+        <!-- Visual Trophy Showcase Grid -->
+        <div class="standard-box p-3">
+          <div class="flex items-center justify-between pb-2 mb-3 border-b border-[#38434f]">
+            <span class="font-bold text-[11px] uppercase text-white">Trophy Cabinet &amp; LAN Titles</span>
+            <button onclick="addNewTrophyItem()" class="hide-in-screenshot text-[11px] text-[#f5a623] hover:underline font-bold">
+              + Add Trophy
+            </button>
+          </div>
+          <div id="trophiesShowcaseGrid" class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+            <!-- Populated dynamically via renderAchievementsTab() -->
+          </div>
+        </div>
+
+        <!-- Tournament Placements Table (1st, 2nd, 3rd-4th with Prize Money) -->
+        <div class="standard-box overflow-hidden">
+          <div class="px-3 py-2 bg-[#2d3844] border-b border-[#38434f] flex items-center justify-between">
+            <span class="font-bold text-[11px] uppercase text-white">Notable Tournament Placements</span>
+            <button onclick="addNewPlacementRow()" class="hide-in-screenshot text-[11px] text-[#04bc6c] hover:underline font-bold">
+              + Add Placement Row
+            </button>
+          </div>
+          <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse text-[11px]">
+              <thead>
+                <tr class="bg-[#191e23] text-[#87a3bf] border-b border-[#38434f] text-[10px] uppercase">
+                  <th class="py-2 px-3">Place</th>
+                  <th class="py-2 px-3">Tournament</th>
+                  <th class="py-2 px-2">Team</th>
+                  <th class="py-2 px-2">Date</th>
+                  <th class="py-2 px-3 text-right">Prize Money</th>
+                  <th class="py-2 px-2 text-right hide-in-screenshot">Del</th>
+                </tr>
+              </thead>
+              <tbody id="placementsTableBody" class="divide-y divide-[#2d3844]">
+                <!-- Populated dynamically via renderAchievementsTab() -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- ==================== RIGHT SIDEBAR (240px) ==================== -->
+    <aside class="right-col space-y-3">
+
+      <!-- RECENT ACTIVITY FORUM BOX -->
+      <div>
+        <div class="standard-headline">
+          <a href="#forum" onclick="return false;" class="hover:text-[#4994df]">Recent activity</a>
+          <i class="fa fa-comments-o text-[#87a3bf]"></i>
+        </div>
+        <div id="recentActivityList" class="standard-box divide-y divide-[#2d3844] text-[11px]"></div>
+      </div>
+
+      <!-- TOP 30 TRANSFERS BOX -->
+      <div>
+        <div class="standard-headline">
+          <span>Top 30 transfers</span>
+          <span class="text-[10px] text-[#4994df] lowercase font-normal">2026 season</span>
+        </div>
+        <div id="recentTransfersList" class="standard-box divide-y divide-[#2d3844] text-[11px]"></div>
+      </div>
+
+      <!-- TOP STREAMS BOX -->
+      <div>
+        <div class="standard-headline">
+          <span>Top streams</span>
+          <span class="text-[10px] text-[#04bc6c] flex items-center gap-1"><span class="w-1.5 h-1.5 rounded-full bg-[#04bc6c] inline-block"></span> LIVE</span>
+        </div>
+        <div id="topStreamsList" class="standard-box divide-y divide-[#2d3844] text-[11px]"></div>
+      </div>
+
+    </aside>
+
+  </main>
+
+  <!-- ======================================================================= -->
+  <!-- CUSTOMIZATION STUDIO DRAWER (SLIDE-OVER PANEL FOR FULL REAL-TIME EDITS) -->
+  <!-- ======================================================================= -->
+  <div id="studioBackdrop" onclick="closeDrawer()" class="fixed inset-0 bg-black/65 z-50 hidden backdrop-blur-[1px] transition-opacity"></div>
+
+  <aside id="studioDrawer" class="fixed top-0 right-0 h-full w-full max-w-[520px] bg-[#191e23] border-l border-[#38434f] z-50 transform translate-x-full transition-transform duration-250 flex flex-col shadow-2xl">
+    <!-- Studio Header -->
+    <div class="px-4 py-3 bg-[#2d3844] border-b border-[#38434f] flex items-center justify-between">
+      <div class="flex items-center gap-2">
+        <i class="fa fa-sliders text-[#4994df] text-base"></i>
+        <div>
+          <h2 class="font-bold text-[13px] text-white leading-tight">HLTV Profile Customization Studio</h2>
+          <p class="text-[10px] text-[#87a3bf]">Edit stats, all 34 weapons, clutches, matches &amp; trophies live</p>
+        </div>
+      </div>
+      <div class="flex items-center gap-2">
+        <button onclick="toggleScreenshotMode(); closeDrawer();" class="bg-[#1b1f23] hover:bg-[#252b32] text-[#dcdcdc] text-[11px] font-semibold px-2.5 py-1 rounded border border-[#38434f]">
+          <i class="fa fa-camera text-[#4994df] mr-1"></i>Clean View
+        </button>
+        <button onclick="closeDrawer()" class="text-[#87a3bf] hover:text-white w-7 h-7 rounded flex items-center justify-center bg-[#1b1f23] border border-[#38434f]">
+          <i class="fa fa-times"></i>
+        </button>
+      </div>
+    </div>
+
+    <!-- Preset Strip -->
+    <div class="px-4 py-2 bg-[#252b32] border-b border-[#38434f]">
+      <div class="grid grid-cols-2 sm:grid-cols-4 gap-1.5">
+        <button onclick="applyPreset('karrigan')" class="bg-[#2d3844] hover:bg-[#384654] text-white text-[11px] font-semibold py-1 px-2 rounded border border-[#38434f] truncate">
+          🇩🇰 karrigan (0.86)
+        </button>
+        <button onclick="applyPreset('zywoo')" class="bg-[#2d3844] hover:bg-[#384654] text-[#04bc6c] text-[11px] font-bold py-1 px-2 rounded border border-[#38434f] truncate">
+          🇫🇷 ZywOo (1.42)
+        </button>
+        <button onclick="applyPreset('m0nesy')" class="bg-[#2d3844] hover:bg-[#384654] text-[#04bc6c] text-[11px] font-bold py-1 px-2 rounded border border-[#38434f] truncate">
+          🇷🇺 m0NESY (1.34)
+        </button>
+        <button onclick="applyPreset('dream')" class="bg-[#2d3844] hover:bg-[#384654] text-[#f5a623] text-[11px] font-bold py-1 px-2 rounded border border-[#38434f] truncate">
+          ⭐ Dream Pro (1.55)
+        </button>
+      </div>
+    </div>
+
+    <!-- Studio Section Sub-Tabs (7 Studio Modules) -->
+    <div class="flex bg-[#14181d] border-b border-[#38434f] text-[11px] font-bold overflow-x-auto">
+      <button onclick="switchStudioSection('identity')" id="studioTab-identity" class="py-2.5 px-2.5 text-[#4994df] border-b-2 border-[#4994df] bg-[#191e23] whitespace-nowrap">1. Identity</button>
+      <button onclick="switchStudioSection('coreStats')" id="studioTab-coreStats" class="py-2.5 px-2.5 text-[#87a3bf] hover:text-white border-b-2 border-transparent whitespace-nowrap">2. Rating</button>
+      <button onclick="switchStudioSection('roles')" id="studioTab-roles" class="py-2.5 px-2.5 text-[#87a3bf] hover:text-white border-b-2 border-transparent whitespace-nowrap">3. Roles</button>
+      <button onclick="switchStudioSection('clutches')" id="studioTab-clutches" class="py-2.5 px-2.5 text-[#87a3bf] hover:text-white border-b-2 border-transparent whitespace-nowrap">4. Clutches</button>
+      <button onclick="switchStudioSection('weapons')" id="studioTab-weapons" class="py-2.5 px-2.5 text-[#87a3bf] hover:text-white border-b-2 border-transparent whitespace-nowrap">5. Weapons</button>
+      <button onclick="switchStudioSection('matches')" id="studioTab-matches" class="py-2.5 px-2.5 text-[#87a3bf] hover:text-white border-b-2 border-transparent whitespace-nowrap">6. Matches</button>
+      <button onclick="switchStudioSection('achievements')" id="studioTab-achievements" class="py-2.5 px-2.5 text-[#87a3bf] hover:text-white border-b-2 border-transparent whitespace-nowrap">7. Trophies</button>
+      <button onclick="switchStudioSection('teams')" id="studioTab-teams" class="py-2.5 px-2.5 text-[#87a3bf] hover:text-white border-b-2 border-transparent whitespace-nowrap">8. Teams</button>
+    </div>
+
+    <!-- Studio Scrollable Form Body -->
+    <div class="p-4 overflow-y-auto flex-1 space-y-4">
+
+      <!-- SECTION 1: IDENTITY, BIO, PHOTO, FLAG, TEAM & PRIZE MONEY -->
+      <div id="studioSection-identity" class="space-y-3">
+        <div class="grid grid-cols-2 gap-2.5">
+          <div>
+            <label class="studio-label">Player Nickname</label>
+            <input type="text" id="inpNickname" oninput="updateIdentityFromStudio()" class="studio-input font-bold" />
+          </div>
+          <div>
+            <label class="studio-label">Full Name (First &amp; Last)</label>
+            <input type="text" id="inpRealName" oninput="updateIdentityFromStudio()" class="studio-input" />
+          </div>
+        </div>
+
+        <div class="grid grid-cols-3 gap-2.5">
+          <div>
+            <label class="studio-label">Age (Years)</label>
+            <input type="number" id="inpAge" min="13" max="60" oninput="updateIdentityFromStudio()" class="studio-input" />
+          </div>
+          <div>
+            <label class="studio-label">Primary Role</label>
+            <select id="inpRole" onchange="updateIdentityFromStudio()" class="studio-input">
+              <option value="IGL">IGL</option>
+              <option value="AWPer">AWPer</option>
+              <option value="Star Rifler">Star Rifler</option>
+              <option value="Entry Fragger">Entry Fragger</option>
+              <option value="Anchor / Support">Anchor / Support</option>
+            </select>
+          </div>
+          <div>
+            <label class="studio-label">Prize Money ($)</label>
+            <input type="text" id="inpPrizeMoney" oninput="updateIdentityFromStudio()" class="studio-input text-[#04bc6c] font-bold" placeholder="$2,145,800" />
+          </div>
+        </div>
+
+        <div>
+          <label class="studio-label">Nationality / Country Flag</label>
+          <select id="inpCountry" onchange="updateIdentityFromStudio()" class="studio-input"></select>
+        </div>
+
+        <!-- Player Photo Upload OR URL -->
+        <div class="p-3 bg-[#252b32] rounded border border-[#38434f] space-y-2">
+          <label class="studio-label">Player Bodyshot Cutout Image</label>
+          <div class="flex gap-2">
+            <label class="flex-1 bg-[#2d3844] hover:bg-[#384654] text-[#4994df] text-[11px] font-bold py-1.5 px-3 rounded border border-[#38434f] cursor-pointer text-center">
+              <i class="fa fa-upload mr-1"></i> Upload Local Photo
+              <input type="file" accept="image/*" onchange="handlePlayerPhotoUpload(event)" class="hidden" />
+            </label>
+            <button onclick="resetPlayerDefaultCutout()" class="bg-[#2d3844] hover:bg-[#384654] text-[#dcdcdc] text-[11px] px-2.5 py-1.5 rounded border border-[#38434f]">
+              Default Cutout
+            </button>
+          </div>
+          <input type="text" id="inpPhotoUrl" oninput="updatePhotoFromUrl(this.value)" placeholder="Or paste transparent PNG / image URL..." class="studio-input text-[11px]" />
+        </div>
+
+        <!-- Current Team Name, Logo & Glow Color -->
+        <div class="p-3 bg-[#252b32] rounded border border-[#38434f] space-y-2.5">
+          <div class="grid grid-cols-2 gap-2.5">
+            <div>
+              <label class="studio-label">Current Team Name</label>
+              <input type="text" id="inpTeamName" oninput="updateIdentityFromStudio()" class="studio-input font-bold" />
+            </div>
+            <div>
+              <label class="studio-label">Team Accent Glow Color</label>
+              <div class="flex items-center gap-2">
+                <input type="color" id="inpTeamColor" oninput="updateIdentityFromStudio()" class="h-8 w-12 bg-transparent border border-[#38434f] rounded cursor-pointer" />
+                <input type="text" id="inpTeamColorHex" oninput="document.getElementById('inpTeamColor').value=this.value; updateIdentityFromStudio();" class="studio-input font-mono text-[11px]" />
+              </div>
+            </div>
+          </div>
+
+          <div>
+            <label class="studio-label">Quick Team Brand Preset</label>
+            <div class="grid grid-cols-3 gap-1.5">
+              <button onclick="setTeamBrand('FaZe Clan', '#e31e24', 'faze')" class="bg-[#2d3844] hover:bg-[#384654] text-white text-[10px] font-bold py-1 px-2 rounded border border-[#38434f]">FaZe Clan</button>
+              <button onclick="setTeamBrand('Team Falcons', '#00b57c', 'falcons')" class="bg-[#2d3844] hover:bg-[#384654] text-white text-[10px] font-bold py-1 px-2 rounded border border-[#38434f]">Team Falcons</button>
+              <button onclick="setTeamBrand('Team Vitality', '#f5a623', 'vitality')" class="bg-[#2d3844] hover:bg-[#384654] text-white text-[10px] font-bold py-1 px-2 rounded border border-[#38434f]">Vitality</button>
+              <button onclick="setTeamBrand('Team Spirit', '#10b981', 'spirit')" class="bg-[#2d3844] hover:bg-[#384654] text-white text-[10px] font-bold py-1 px-2 rounded border border-[#38434f]">Team Spirit</button>
+              <button onclick="setTeamBrand('Natus Vincere', '#eab308', 'navi')" class="bg-[#2d3844] hover:bg-[#384654] text-white text-[10px] font-bold py-1 px-2 rounded border border-[#38434f]">NAVI</button>
+              <button onclick="setTeamBrand('G2 Esports', '#ef4444', 'g2')" class="bg-[#2d3844] hover:bg-[#384654] text-white text-[10px] font-bold py-1 px-2 rounded border border-[#38434f]">G2 Esports</button>
+            </div>
+          </div>
+
+          <div class="flex gap-2 items-center pt-1">
+            <label class="bg-[#2d3844] hover:bg-[#384654] text-[#4994df] text-[11px] font-semibold py-1 px-2.5 rounded border border-[#38434f] cursor-pointer whitespace-nowrap">
+              <i class="fa fa-upload mr-1"></i> Upload Logo
+              <input type="file" accept="image/*" onchange="handleTeamLogoUpload(event)" class="hidden" />
+            </label>
+            <input type="text" id="inpTeamLogoUrl" oninput="updateTeamLogoUrl(this.value)" placeholder="Or paste Team Logo URL..." class="studio-input text-[11px]" />
+          </div>
+        </div>
+      </div>
+
+      <!-- SECTION 2: RATING 3.0 & 6 CORE STATS -->
+      <div id="studioSection-coreStats" class="hidden space-y-3">
+        <div class="p-3 bg-[#252b32] rounded border border-[#38434f] space-y-3">
+          <div class="flex items-center justify-between">
+            <span class="font-bold text-[11px] uppercase text-[#4994df]">Rating 3.0 &amp; Side Splits</span>
+            <button onclick="autoCalculateCoreFromRating()" class="text-[10px] bg-[#2d3844] hover:bg-[#384654] text-[#04bc6c] px-2 py-0.5 rounded border border-[#38434f] font-bold">
+              Auto-Sync All Stats to Rating
+            </button>
+          </div>
+
+          <div class="grid grid-cols-3 gap-2.5">
+            <div>
+              <label class="studio-label">Rating 3.0</label>
+              <input type="number" step="0.01" min="0.10" max="2.50" id="inpRating" oninput="updateCoreStatsFromStudio()" class="studio-input font-bold text-white" />
+            </div>
+            <div>
+              <label class="studio-label">T Side Rating</label>
+              <input type="number" step="0.01" min="0.10" max="2.50" id="inpTRating" oninput="updateCoreStatsFromStudio()" class="studio-input text-[#f59e0b] font-bold" />
+            </div>
+            <div>
+              <label class="studio-label">CT Side Rating</label>
+              <input type="number" step="0.01" min="0.10" max="2.50" id="inpCTRating" oninput="updateCoreStatsFromStudio()" class="studio-input text-[#60a5fa] font-bold" />
+            </div>
+          </div>
+
+          <div>
+            <label class="studio-label">Total Maps Played</label>
+            <input type="number" min="1" max="5000" id="inpMapsCount" oninput="updateCoreStatsFromStudio()" class="studio-input" />
+          </div>
+        </div>
+
+        <div class="p-3 bg-[#252b32] rounded border border-[#38434f] space-y-2.5">
+          <div class="font-bold text-[11px] uppercase text-white">6 Summary Mini-Cards</div>
+          <div class="grid grid-cols-2 gap-2.5">
+            <div>
+              <label class="studio-label">Round Swing (%)</label>
+              <input type="number" step="0.01" id="inpRoundSwing" oninput="updateCoreStatsFromStudio()" class="studio-input" />
+            </div>
+            <div>
+              <label class="studio-label">DPR (Deaths / Round)</label>
+              <input type="number" step="0.01" id="inpDpr" oninput="updateCoreStatsFromStudio()" class="studio-input" />
+            </div>
+            <div>
+              <label class="studio-label">KAST (%)</label>
+              <input type="number" step="0.1" id="inpKast" oninput="updateCoreStatsFromStudio()" class="studio-input" />
+            </div>
+            <div>
+              <label class="studio-label">Multi-kill Rounds (%)</label>
+              <input type="number" step="0.1" id="inpMultiKill" oninput="updateCoreStatsFromStudio()" class="studio-input" />
+            </div>
+            <div>
+              <label class="studio-label">ADR (Damage / Round)</label>
+              <input type="number" step="0.1" id="inpAdr" oninput="updateCoreStatsFromStudio()" class="studio-input" />
+            </div>
+            <div>
+              <label class="studio-label">KPR (Kills / Round)</label>
+              <input type="number" step="0.01" id="inpKpr" oninput="updateCoreStatsFromStudio()" class="studio-input" />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- SECTION 3: 7 ROLE SCORES (/100 SLIDERS) -->
+      <div id="studioSection-roles" class="hidden space-y-3">
+        <div class="p-3 bg-[#252b32] rounded border border-[#38434f] space-y-3">
+          <div class="flex items-center justify-between">
+            <span class="font-bold text-[11px] uppercase text-white">Role Attribute Scores (0 - 100)</span>
+            <button onclick="maxOutAllRoles()" class="text-[10px] bg-[#2d3844] hover:bg-[#384654] text-[#04bc6c] px-2 py-0.5 rounded border border-[#38434f] font-bold">
+              Set All 99 (God Mode)
+            </button>
+          </div>
+          <div id="studioRoleSliders" class="space-y-2.5"></div>
+        </div>
+      </div>
+
+      <!-- SECTION 4: CLUTCHES CUSTOMIZER (1v1, 1v2, 1v3, 1v4, 1v5 + 1vX) -->
+      <div id="studioSection-clutches" class="hidden space-y-3">
+        <div class="p-3 bg-[#252b32] rounded border border-[#38434f] space-y-3">
+          <div class="flex items-center justify-between">
+            <span class="font-bold text-[11px] uppercase text-[#04bc6c]">1v1 - 1v5 Clutches Won &amp; Failed</span>
+            <span class="text-[10px] text-[#87a3bf]">1vX Combined auto-calculates</span>
+          </div>
+          <div id="studioClutchesInputs" class="space-y-2">
+            <!-- Populated dynamically via renderStudioClutches() -->
+          </div>
+        </div>
+      </div>
+
+      <!-- SECTION 5: COMPLETE CS2 WEAPONS CUSTOMIZER (ALL 34 WEAPONS) -->
+      <div id="studioSection-weapons" class="hidden space-y-3">
+        <div class="p-3 bg-[#252b32] rounded border border-[#38434f] space-y-3">
+          <div class="flex items-center justify-between">
+            <span class="font-bold text-[11px] uppercase text-[#4994df]">Add New / Custom Weapon</span>
+          </div>
+          <div class="grid grid-cols-4 gap-1.5">
+            <input type="text" id="newWepName" placeholder="Weapon name" class="studio-input col-span-2" />
+            <select id="newWepCat" class="studio-input">
+              <option value="Rifles">Rifles</option>
+              <option value="Snipers">Snipers</option>
+              <option value="SMGs">SMGs</option>
+              <option value="Pistols">Pistols</option>
+              <option value="Grenades">Grenades</option>
+              <option value="Other">Other</option>
+            </select>
+            <button onclick="addNewCustomWeapon()" class="bg-[#04bc6c] hover:bg-[#039e5a] text-white font-bold text-[11px] rounded px-2">+ Add</button>
+          </div>
+        </div>
+
+        <div class="p-3 bg-[#252b32] rounded border border-[#38434f] space-y-2.5">
+          <div class="flex items-center justify-between">
+            <span class="font-bold text-[11px] uppercase text-white">All CS2 Weapons (Kills &amp; Rounds Carried)</span>
+          </div>
+          <div id="studioWeaponsInputs" class="space-y-1.5 max-h-[420px] overflow-y-auto pr-1">
+            <!-- Populated dynamically via renderStudioWeapons() -->
+          </div>
+        </div>
+      </div>
+
+      <!-- SECTION 6: MATCHES LOG CUSTOMIZER -->
+      <div id="studioSection-matches" class="hidden space-y-3">
+        <div class="p-3 bg-[#252b32] rounded border border-[#38434f] space-y-3">
+          <div class="flex items-center justify-between">
+            <span class="font-bold text-[11px] uppercase text-[#4994df]">Match History Log Editor</span>
+            <button onclick="addNewMatchRow()" class="text-[10px] bg-[#04bc6c]/20 text-[#04bc6c] border border-[#04bc6c]/40 px-2 py-0.5 rounded font-bold">
+              + Add Match
+            </button>
+          </div>
+          <div id="studioMatchesList" class="space-y-2.5">
+            <!-- Populated dynamically via renderStudioMatches() -->
+          </div>
+        </div>
+      </div>
+
+      <!-- SECTION 7: TROPHIES, MEDALS & ACHIEVEMENTS CUSTOMIZER -->
+      <div id="studioSection-achievements" class="hidden space-y-3">
+        <div class="p-3 bg-[#252b32] rounded border border-[#38434f] space-y-2.5">
+          <div class="font-bold text-[11px] uppercase text-[#f5a623]">Career Medals &amp; Summary Counters</div>
+          <div class="grid grid-cols-3 gap-2">
+            <div>
+              <label class="studio-label">Majors Won</label>
+              <input type="number" id="inpMajorsWon" min="0" oninput="updateAchievementsFromStudio()" class="studio-input font-bold text-[#f5a623]" />
+            </div>
+            <div>
+              <label class="studio-label">Big Events Won</label>
+              <input type="number" id="inpBigEventsWon" min="0" oninput="updateAchievementsFromStudio()" class="studio-input font-bold" />
+            </div>
+            <div>
+              <label class="studio-label">HLTV MVPs</label>
+              <input type="number" id="inpMvpsWon" min="0" oninput="updateAchievementsFromStudio()" class="studio-input font-bold text-[#4994df]" />
+            </div>
+            <div>
+              <label class="studio-label">EVP Mentions</label>
+              <input type="number" id="inpEvpsWon" min="0" oninput="updateAchievementsFromStudio()" class="studio-input font-bold" />
+            </div>
+            <div class="col-span-2">
+              <label class="studio-label">Top 20 Player Peak Badge</label>
+              <input type="text" id="inpTop20Peak" oninput="updateAchievementsFromStudio()" class="studio-input font-bold text-[#f5a623]" placeholder="#1 (2026)" />
+            </div>
+          </div>
+        </div>
+
+        <!-- Trophy Cabinet Editor -->
+        <div class="p-3 bg-[#252b32] rounded border border-[#38434f] space-y-2.5">
+          <div class="flex items-center justify-between">
+            <span class="font-bold text-[11px] uppercase text-white">Trophy Cabinet Shelf Items</span>
+            <button onclick="addNewTrophyItem()" class="text-[10px] bg-[#f5a623]/20 text-[#f5a623] border border-[#f5a623]/40 px-2 py-0.5 rounded font-bold">
+              + Add Trophy
+            </button>
+          </div>
+          <div id="studioTrophiesList" class="space-y-2">
+            <!-- Populated dynamically via renderStudioAchievements() -->
+          </div>
+        </div>
+
+        <!-- Tournament Placements Editor -->
+        <div class="p-3 bg-[#252b32] rounded border border-[#38434f] space-y-2.5">
+          <div class="flex items-center justify-between">
+            <span class="font-bold text-[11px] uppercase text-white">Tournament Placements Table</span>
+            <button onclick="addNewPlacementRow()" class="text-[10px] bg-[#04bc6c]/20 text-[#04bc6c] border border-[#04bc6c]/40 px-2 py-0.5 rounded font-bold">
+              + Add Placement
+            </button>
+          </div>
+          <div id="studioPlacementsList" class="space-y-2">
+            <!-- Populated dynamically via renderStudioAchievements() -->
+          </div>
+        </div>
+      </div>
+
+      <!-- SECTION 8: TEAMS COUNTERS & TEAMMATES MANAGER -->
+      <div id="studioSection-teams" class="hidden space-y-3">
+        <div class="p-3 bg-[#252b32] rounded border border-[#38434f] space-y-2.5">
+          <div class="font-bold text-[11px] uppercase text-[#4994df]">Team Career Counters</div>
+          <div class="grid grid-cols-3 gap-2">
+            <div>
+              <label class="studio-label">Total Teams</label>
+              <input type="number" id="inpCareerTeams" min="1" oninput="updateTeamsCareerFromStudio()" class="studio-input font-bold" />
+            </div>
+            <div>
+              <label class="studio-label">Days Current Team</label>
+              <input type="number" id="inpDaysCurrent" min="1" oninput="updateTeamsCareerFromStudio()" class="studio-input font-bold" />
+            </div>
+            <div>
+              <label class="studio-label">Total Days in Teams</label>
+              <input type="number" id="inpDaysTotal" min="1" oninput="updateTeamsCareerFromStudio()" class="studio-input font-bold" />
+            </div>
+          </div>
+        </div>
+
+        <!-- Teammates Editor List -->
+        <div class="p-3 bg-[#252b32] rounded border border-[#38434f] space-y-3">
+          <div class="flex items-center justify-between">
+            <span class="font-bold text-[11px] uppercase text-white">Active Teammates (Lineup &amp; Table)</span>
+            <button onclick="addNewTeammate()" class="text-[10px] bg-[#04bc6c]/20 text-[#04bc6c] border border-[#04bc6c]/40 px-2 py-0.5 rounded font-bold">
+              + Add Teammate
+            </button>
+          </div>
+          <div id="studioTeammatesList" class="space-y-2.5"></div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Studio Footer -->
+    <div class="p-3 bg-[#2d3844] border-t border-[#38434f] flex items-center justify-between">
+      <button onclick="applyPreset('karrigan')" class="text-[11px] text-[#87a3bf] hover:text-white">
+        Reset to karrigan
+      </button>
+      <button onclick="closeDrawer()" class="bg-[#2b6ea4] hover:bg-[#3582c0] border border-[#4994df] text-white text-[12px] font-bold px-5 py-1.5 rounded shadow">
+        Done &amp; View Profile
+      </button>
+    </div>
+  </aside>
+
+  <!-- NON-INTRUSIVE TOAST NOTIFICATION -->
+  <div id="toastNotification" class="fixed bottom-4 left-1/2 -translate-x-1/2 z-50 bg-[#2d3844] text-white text-[12px] font-semibold px-4 py-2 rounded border border-[#4994df] shadow-xl opacity-0 pointer-events-none transition-opacity duration-200 flex items-center gap-2">
+    <i class="fa fa-check-circle text-[#04bc6c]"></i>
+    <span id="toastText">Profile updated</span>
+  </div>
+
+  <!-- ======================================================================= -->
+  <!-- APPLICATION LOGIC, DATA MODELS, SVG GENERATORS & REAL-TIME RENDERER     -->
+  <!-- ======================================================================= -->
+  <script>
+    // --- COUNTRY FLAGS CATALOG ---
+    const COUNTRIES = [
+      { code: 'dk', name: 'Denmark' },
+      { code: 'fr', name: 'France' },
+      { code: 'ru', name: 'Russia' },
+      { code: 'ua', name: 'Ukraine' },
+      { code: 'ba', name: 'Bosnia & Herzegovina' },
+      { code: 'se', name: 'Sweden' },
+      { code: 'no', name: 'Norway' },
+      { code: 'fi', name: 'Finland' },
+      { code: 'de', name: 'Germany' },
+      { code: 'pl', name: 'Poland' },
+      { code: 'ee', name: 'Estonia' },
+      { code: 'lv', name: 'Latvia' },
+      { code: 'lt', name: 'Lithuania' },
+      { code: 'cz', name: 'Czechia' },
+      { code: 'sk', name: 'Slovakia' },
+      { code: 'hu', name: 'Hungary' },
+      { code: 'ro', name: 'Romania' },
+      { code: 'bg', name: 'Bulgaria' },
+      { code: 'rs', name: 'Serbia' },
+      { code: 'mk', name: 'North Macedonia' },
+      { code: 'tr', name: 'Turkey' },
+      { code: 'il', name: 'Israel' },
+      { code: 'kz', name: 'Kazakhstan' },
+      { code: 'mn', name: 'Mongolia' },
+      { code: 'cn', name: 'China' },
+      { code: 'au', name: 'Australia' },
+      { code: 'us', name: 'United States' },
+      { code: 'ca', name: 'Canada' },
+      { code: 'br', name: 'Brazil' },
+      { code: 'ar', name: 'Argentina' },
+      { code: 'uy', name: 'Uruguay' },
+      { code: 'cl', name: 'Chile' },
+      { code: 'gb', name: 'United Kingdom' },
+      { code: 'nl', name: 'Netherlands' },
+      { code: 'be', name: 'Belgium' },
+      { code: 'es', name: 'Spain' },
+      { code: 'pt', name: 'Portugal' },
+      { code: 'za', name: 'South Africa' },
+      { code: 'eu', name: 'European Union' }
+    ];
+
+    // Authentic HLTV Weapon Category Colors
+    const WEAPON_CATEGORY_COLORS = {
+      Rifles: '#36a2eb',
+      Snipers: '#ffce56',
+      SMGs: '#4bc0c0',
+      Pistols: '#9966ff',
+      Grenades: '#ff9f40',
+      Other: '#c9cbcf'
+    };
+
+    // Default Complete 34 CS2 Weapons Dataset (Exact karrigan HLTV Reference)
+    function getDefaultWeaponsList(multiplier = 1, sniperBoost = 1) {
+      const base = [
+        // Rifles (#36a2eb)
+        { name: 'AK-47', category: 'Rifles', kills: 2492, rounds: 4269 },
+        { name: 'M4A1-S', category: 'Rifles', kills: 1473, rounds: 2315 },
+        { name: 'M4A4', category: 'Rifles', kills: 491, rounds: 848 },
+        { name: 'Galil AR', category: 'Rifles', kills: 251, rounds: 502 },
+        { name: 'FAMAS', category: 'Rifles', kills: 175, rounds: 243 },
+        { name: 'AUG', category: 'Rifles', kills: 130, rounds: 224 },
+        { name: 'SG 553', category: 'Rifles', kills: 18, rounds: 35 },
+        // Snipers (#ffce56)
+        { name: 'AWP', category: 'Snipers', kills: 61, rounds: 48 },
+        { name: 'SSG 08', category: 'Snipers', kills: 32, rounds: 89 },
+        { name: 'SCAR-20', category: 'Snipers', kills: 4, rounds: 6 },
+        { name: 'G3SG1', category: 'Snipers', kills: 2, rounds: 4 },
+        // SMGs (#4bc0c0)
+        { name: 'MP9', category: 'SMGs', kills: 411, rounds: 772 },
+        { name: 'MAC-10', category: 'SMGs', kills: 327, rounds: 586 },
+        { name: 'MP7', category: 'SMGs', kills: 64, rounds: 120 },
+        { name: 'UMP-45', category: 'SMGs', kills: 15, rounds: 32 },
+        { name: 'MP5-SD', category: 'SMGs', kills: 5, rounds: 12 },
+        { name: 'P90', category: 'SMGs', kills: 1, rounds: 5 },
+        // Pistols (#9966ff)
+        { name: 'USP-S', category: 'Pistols', kills: 416, rounds: 823 },
+        { name: 'P250', category: 'Pistols', kills: 185, rounds: 507 },
+        { name: 'Glock-18', category: 'Pistols', kills: 183, rounds: 748 },
+        { name: 'Tec-9', category: 'Pistols', kills: 144, rounds: 467 },
+        { name: 'Desert Eagle', category: 'Pistols', kills: 133, rounds: 460 },
+        { name: 'Five-SeveN', category: 'Pistols', kills: 89, rounds: 297 },
+        { name: 'Dual Berettas', category: 'Pistols', kills: 28, rounds: 50 },
+        { name: 'P2000', category: 'Pistols', kills: 3, rounds: 11 },
+        { name: 'CZ75-Auto', category: 'Pistols', kills: 2, rounds: 13 },
+        { name: 'R8 Revolver', category: 'Pistols', kills: 0, rounds: 1 },
+        // Grenades (#ff9f40)
+        { name: 'HE grenade', category: 'Grenades', kills: 61, rounds: 0 },
+        { name: 'Molotov fire', category: 'Grenades', kills: 37, rounds: 0 },
+        // Other (#c9cbcf)
+        { name: 'Zeus x27', category: 'Other', kills: 2, rounds: 3 },
+        { name: 'Knife', category: 'Other', kills: 1, rounds: 0 },
+        { name: 'MAG-7', category: 'Other', kills: 1, rounds: 2 },
+        { name: 'Nova', category: 'Other', kills: 1, rounds: 1 },
+        { name: 'XM1014', category: 'Other', kills: 0, rounds: 1 }
+      ];
+      return base.map(w => {
+        const m = w.category === 'Snipers' ? sniperBoost : multiplier;
+        return {
+          ...w,
+          kills: Math.round(w.kills * m),
+          rounds: Math.round(w.rounds * m)
+        };
+      });
+    }
+
+    function getFlagUrl(code) {
+      return `https://flagcdn.com/w40/${(code || 'dk').toLowerCase()}.png`;
+    }
+
+    // --- SVG DATA URI GENERATORS FOR PRO CUTOUTS & TEAM LOGOS ---
+    function createProPlayerCutoutSvg(jerseyColor = '#e31e24') {
+      const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 260 280">
+        <defs>
+          <linearGradient id="skin" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#f1c6a7"/>
+            <stop offset="100%" stop-color="#c6906d"/>
+          </linearGradient>
+          <linearGradient id="jersey" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0%" stop-color="#1e2732"/>
+            <stop offset="55%" stop-color="#121820"/>
+            <stop offset="100%" stop-color="${jerseyColor}"/>
+          </linearGradient>
+        </defs>
+        <path d="M82 78 C82 32, 178 32, 178 78" fill="none" stroke="#1e293b" stroke-width="9" stroke-linecap="round"/>
+        <rect x="73" y="68" width="14" height="32" rx="6" fill="#0f172a" stroke="${jerseyColor}" stroke-width="2"/>
+        <rect x="173" y="68" width="14" height="32" rx="6" fill="#0f172a" stroke="${jerseyColor}" stroke-width="2"/>
+        <rect x="110" y="115" width="40" height="34" rx="8" fill="#bf8865"/>
+        <path d="M28 280 L44 162 C50 144, 78 136, 108 136 L152 136 C182 136, 210 144, 216 162 L232 280 Z" fill="url(#jersey)" stroke="#2b3744" stroke-width="2"/>
+        <path d="M62 142 L95 280 L112 280 L82 138 Z" fill="${jerseyColor}" opacity="0.88"/>
+        <path d="M198 142 L165 280 L148 280 L178 138 Z" fill="${jerseyColor}" opacity="0.88"/>
+        <path d="M104 136 L130 165 L156 136" fill="none" stroke="${jerseyColor}" stroke-width="5"/>
+        <path d="M92 68 C92 38, 168 38, 168 68 L166 104 C166 125, 148 136, 130 136 C112 136, 94 125, 94 104 Z" fill="url(#skin)"/>
+        <path d="M90 72 C88 40, 110 30, 132 32 C156 30, 172 44, 170 72 C164 56, 148 52, 130 52 C110 52, 96 58, 90 72 Z" fill="#3b2f2f"/>
+        <rect x="107" y="76" width="14" height="3.5" rx="1.5" fill="#3b2f2f"/>
+        <rect x="139" y="76" width="14" height="3.5" rx="1.5" fill="#3b2f2f"/>
+        <circle cx="114" cy="84" r="3" fill="#1e293b"/>
+        <circle cx="146" cy="84" r="3" fill="#1e293b"/>
+        <path d="M120 112 Q130 117 140 112" fill="none" stroke="#8c583a" stroke-width="3" stroke-linecap="round"/>
+        <path d="M180 94 Q168 118 142 118" fill="none" stroke="#0f172a" stroke-width="3.5" stroke-linecap="round"/>
+        <circle cx="140" cy="118" r="4" fill="#1e293b"/>
+      </svg>`;
+      return 'data:image/svg+xml;utf8,' + encodeURIComponent(svg);
+    }
+
+    function createTeamLogoSvg(brandKey = 'faze', color = '#e31e24') {
+      const logos = {
+        faze: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><path d="M8 14H56L48 24H24V30H44L36 40H24V52L12 44V24H8V14Z" fill="${color}" stroke="#ffffff" stroke-width="2"/></svg>`,
+        falcons: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><path d="M32 6L56 18L44 34L52 42L32 58L12 42L20 34L8 18L32 6Z" fill="#00b57c"/><path d="M32 16L44 24L32 48L20 24L32 16Z" fill="#ffffff"/></svg>`,
+        vitality: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><path d="M12 10L32 24L52 10L44 38L32 56L20 38L12 10Z" fill="#f5a623"/></svg>`,
+        spirit: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><circle cx="32" cy="32" r="26" fill="#10b981"/><path d="M20 24L32 14L44 24L38 46L26 46Z" fill="#0d1115"/></svg>`,
+        navi: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><polygon points="8,14 56,8 50,50 8,56" fill="#eab308"/><text x="14" y="40" font-family="Oswald, sans-serif" font-weight="bold" font-size="22" fill="#000">NAVI</text></svg>`,
+        g2: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><path d="M32 6L54 20L46 52L32 58L18 52L10 20L32 6Z" fill="#ef4444"/><path d="M22 26L32 34L42 26L38 44L32 48L26 44Z" fill="#ffffff"/></svg>`
+      };
+      const raw = logos[brandKey] || logos.faze;
+      return 'data:image/svg+xml;utf8,' + encodeURIComponent(raw);
+    }
+
+    // --- AUTHENTIC HLTV ROLE ATTRIBUTE DEFINITIONS ---
+    const ROLE_DEFINITIONS = [
+      {
+        key: 'firepower',
+        title: 'Firepower',
+        icon: `<svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2c.5 4.5 4 7 4 11a6 6 0 1 1-12 0c0-3 2-5.5 3-7.5 1 2 2.5 2.5 2.5 2.5S11.5 5 12 2z"/></svg>`,
+        subStats: [
+          { label: 'Kills per round win', min: 0.58, max: 1.25, avg: 0.86, unit: '', decimals: 2 },
+          { label: 'Round win shares', min: 10.5, max: 28.5, avg: 18.2, unit: '%', decimals: 1 },
+          { label: 'Perfect kills per round', min: 0.08, max: 0.28, avg: 0.16, unit: '', decimals: 2 },
+          { label: 'Trade denials per round', min: 0.03, max: 0.16, avg: 0.08, unit: '', decimals: 2 },
+          { label: 'Rounds with a kill', min: 34.0, max: 58.0, avg: 44.5, unit: '%', decimals: 1 },
+          { label: 'Rounds with a multi-kill', min: 9.5, max: 26.5, avg: 16.2, unit: '%', decimals: 1 }
+        ]
+      },
+      {
+        key: 'entrying',
+        title: 'Entrying',
+        icon: `<svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>`,
+        subStats: [
+          { label: 'Saved by teammate per round', min: 0.05, max: 0.16, avg: 0.10, unit: '', decimals: 2 },
+          { label: 'Traded deaths per round', min: 0.09, max: 0.22, avg: 0.14, unit: '', decimals: 2 },
+          { label: 'Traded deaths percentage', min: 15.0, max: 31.0, avg: 21.5, unit: '%', decimals: 1 },
+          { label: 'Opening deaths traded percentage', min: 18.0, max: 42.0, avg: 27.5, unit: '%', decimals: 1 },
+          { label: 'Support rounds', min: 14.0, max: 34.0, avg: 22.0, unit: '%', decimals: 1 },
+          { label: 'Assists per round', min: 0.09, max: 0.21, avg: 0.14, unit: '', decimals: 2 }
+        ]
+      },
+      {
+        key: 'trading',
+        title: 'Trading',
+        icon: `<svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 1l4 4-4 4"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><path d="M7 23l-4-4 4-4"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>`,
+        subStats: [
+          { label: 'Saved teammate per round', min: 0.05, max: 0.17, avg: 0.10, unit: '', decimals: 2 },
+          { label: 'Trade kills per round', min: 0.07, max: 0.22, avg: 0.13, unit: '', decimals: 2 },
+          { label: 'Trade kills percentage', min: 13.0, max: 29.0, avg: 20.0, unit: '%', decimals: 1 },
+          { label: 'Assisted kills percentage', min: 16.0, max: 35.0, avg: 24.5, unit: '%', decimals: 1 },
+          { label: 'Damage per kill', min: 98.0, max: 122.0, avg: 108.5, unit: '', decimals: 1 }
+        ]
+      },
+      {
+        key: 'opening',
+        title: 'Opening',
+        icon: `<svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="22" y1="12" x2="18" y2="12"/><line x1="6" y1="12" x2="2" y2="12"/><line x1="12" y1="6" x2="12" y2="2"/><line x1="12" y1="22" x2="12" y2="18"/></svg>`,
+        subStats: [
+          { label: 'Opening kills per round', min: 0.05, max: 0.19, avg: 0.10, unit: '', decimals: 2 },
+          { label: 'Opening deaths per round', min: 0.15, max: 0.06, avg: 0.10, unit: '', decimals: 2 },
+          { label: 'Opening attempts', min: 14.0, max: 32.0, avg: 21.0, unit: '%', decimals: 1 },
+          { label: 'Opening success', min: 38.0, max: 66.0, avg: 50.0, unit: '%', decimals: 1 },
+          { label: 'Win% after opening kill', min: 68.0, max: 82.0, avg: 74.2, unit: '%', decimals: 1 },
+          { label: 'Attacks per round', min: 1.40, max: 2.85, avg: 1.95, unit: '', decimals: 2 }
+        ]
+      },
+      {
+        key: 'closing',
+        title: 'Closing',
+        icon: `<svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>`,
+        subStats: [
+          { label: 'Last alive percentage', min: 5.0, max: 19.0, avg: 10.5, unit: '%', decimals: 1 },
+          { label: '1v1 win percentage', min: 42.0, max: 76.0, avg: 58.0, unit: '%', decimals: 1 },
+          { label: 'Time alive per round', min: 56.0, max: 76.0, avg: 65.4, unit: 's', decimals: 1 },
+          { label: 'Saves per round loss', min: 4.0, max: 18.0, avg: 9.5, unit: '%', decimals: 1 },
+          { label: 'Clutch points per round', min: 0.01, max: 0.07, avg: 0.03, unit: '', decimals: 2 }
+        ]
+      },
+      {
+        key: 'sniping',
+        title: 'Sniping',
+        icon: `<svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="2"/><path d="M12 3v4M12 17v4M3 12h4M17 12h4"/></svg>`,
+        subStats: [
+          { label: 'Sniper kills per round', min: 0.00, max: 0.44, avg: 0.09, unit: '', decimals: 2 },
+          { label: 'Sniper kills percentage', min: 0.5, max: 54.0, avg: 12.5, unit: '%', decimals: 1 },
+          { label: 'Rounds with sniper kills', min: 0.4, max: 32.0, avg: 8.2, unit: '%', decimals: 1 },
+          { label: 'Sniper multi-kill rounds', min: 0.01, max: 0.12, avg: 0.03, unit: '', decimals: 2 },
+          { label: 'Sniper opening kills per round', min: 0.00, max: 0.14, avg: 0.03, unit: '', decimals: 2 }
+        ]
+      },
+      {
+        key: 'utility',
+        title: 'Utility',
+        icon: `<svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 4V2m0 2v2m0-2h-4.5M6 10a6 6 0 1 0 12 0 6 6 0 0 0-12 0z"/></svg>`,
+        subStats: [
+          { label: 'Utility damage per round', min: 3.2, max: 9.8, avg: 6.1, unit: '', decimals: 1 },
+          { label: 'Utility kills per 100 rounds', min: 0.15, max: 0.85, avg: 0.42, unit: '', decimals: 2 },
+          { label: 'Flashes thrown per round', min: 0.35, max: 0.98, avg: 0.62, unit: '', decimals: 2 },
+          { label: 'Flash assists per round', min: 0.02, max: 0.09, avg: 0.05, unit: '', decimals: 2 },
+          { label: 'Time opponent flashed per round', min: 1.10, max: 3.40, avg: 2.05, unit: 's', decimals: 2 }
+        ]
+      }
+    ];
+
+    // --- GLOBAL STATE ---
+    let state = {
+      activeTab: 'overview',
+      showPlayerAvg: false,
+      ecoAdjust: false,
+      roleSide: 'combined',
+      weaponCategoryFilter: 'All',
+      expandedRoles: {
+        firepower: true,
+        entrying: false,
+        trading: false,
+        opening: false,
+        closing: false,
+        sniping: false,
+        utility: false
+      },
+      filters: {
+        event: 'All',
+        matchType: 'All',
+        time: 'All time',
+        oppRank: 'All',
+        version: 'CS2',
+        comparedTo: 'IGLs'
+      },
+      player: {
+        nickname: 'karrigan',
+        realName: 'Finn Andersen',
+        age: 35,
+        countryCode: 'dk',
+        role: 'IGL',
+        prizeMoney: '$2,145,800',
+        teamName: 'FaZe Clan',
+        teamColor: '#e31e24',
+        teamBrandKey: 'faze',
+        teamLogoUrl: '',
+        photoUrl: '',
+        majorsWon: 1,
+        bigEventsWon: 21,
+        mvpsWon: 2,
+        evpsWon: 14,
+        top20Peak: '#8 (2015)'
+      },
+      coreStats: {
+        maps: 607,
+        rating: 0.86,
+        tRating: 0.82,
+        ctRating: 0.90,
+        roundSwing: -1.91,
+        dpr: 0.71,
+        kast: 67.7,
+        multiKill: 12.0,
+        adr: 62.0,
+        kpr: 0.54
+      },
+      roles: {
+        firepower: 24,
+        entrying: 52,
+        trading: 32,
+        opening: 25,
+        closing: 14,
+        sniping: 3,
+        utility: 62
+      },
+      clutches: {
+        '1v1': { won: 84, lost: 52 },
+        '1v2': { won: 28, lost: 64 },
+        '1v3': { won: 6, lost: 41 },
+        '1v4': { won: 2, lost: 19 },
+        '1v5': { won: 1, lost: 8 }
+      },
+      clutchLog: [
+        { date: '11/11/26', opp: 'Team Vitality', event: 'IEM Katowice', map: 'Mirage', situation: '1v3', outcome: 'Won' },
+        { date: '08/11/26', opp: 'G2 Esports', event: 'BLAST Premier', map: 'Ancient', situation: '1v2', outcome: 'Won' },
+        { date: '02/11/26', opp: 'Natus Vincere', event: 'PGL Major', map: 'Nuke', situation: '1v4', outcome: 'Won' },
+        { date: '25/10/26', opp: 'Team Spirit', event: 'IEM Cologne', map: 'Inferno', situation: '1v2', outcome: 'Lost' },
+        { date: '19/10/26', opp: 'MOUZ', event: 'ESL Pro League', map: 'Anubis', situation: '1v1', outcome: 'Won' }
+      ],
+      teamsCareer: {
+        totalTeams: 14,
+        daysInCurrentTeam: 1512,
+        daysInTeams: 5490
+      },
+      teammates: [
+        { nickname: 'rain', realName: 'Håvard Nygaard', countryCode: 'no', role: 'Entry Fragger', maps: 1184, days: 2940, rating: 1.09, jerseyColor: '#e31e24', photoUrl: '' },
+        { nickname: 'broky', realName: 'Helvijs Saukants', countryCode: 'lv', role: 'AWPer', maps: 942, days: 1850, rating: 1.14, jerseyColor: '#e31e24', photoUrl: '' },
+        { nickname: 'frozen', realName: 'David Čerňanský', countryCode: 'sk', role: 'Star Rifler', maps: 615, days: 980, rating: 1.18, jerseyColor: '#e31e24', photoUrl: '' },
+        { nickname: 'EliGE', realName: 'Jonathan Jablonowski', countryCode: 'us', role: 'Star Rifler', maps: 195, days: 310, rating: 1.15, jerseyColor: '#e31e24', photoUrl: '' }
+      ],
+      teamHistory: [
+        { period: 'Feb 2021 - Present', team: 'FaZe Clan', days: 1512, maps: 890, rating: 0.89 },
+        { period: 'Mar 2019 - Feb 2021', team: 'mousesports', days: 702, maps: 412, rating: 0.94 },
+        { period: 'Oct 2016 - Dec 2018', team: 'FaZe Clan', days: 790, maps: 534, rating: 0.96 },
+        { period: 'Dec 2014 - Oct 2016', team: 'TSM / Astralis', days: 675, maps: 488, rating: 0.98 },
+        { period: 'Mar 2012 - Dec 2014', team: 'fnatic / Dignitas', days: 910, maps: 420, rating: 1.01 }
+      ],
+      weapons: getDefaultWeaponsList(1, 1),
+      matches: [
+        { date: '11/11/26', team: 'FaZe Clan', opp: 'Team Vitality', oppFlag: 'fr', event: 'IEM Katowice 2026', map: 'Mirage', score: '13 - 10', kills: 16, deaths: 14, adr: 71.4, rating: 1.08 },
+        { date: '10/11/26', team: 'FaZe Clan', opp: 'Natus Vincere', oppFlag: 'ua', event: 'IEM Katowice 2026', map: 'Nuke', score: '13 - 8', kills: 15, deaths: 13, adr: 68.2, rating: 1.04 },
+        { date: '08/11/26', team: 'FaZe Clan', opp: 'G2 Esports', oppFlag: 'eu', event: 'BLAST Premier Final', map: 'Ancient', score: '11 - 13', kills: 11, deaths: 18, adr: 54.5, rating: 0.74 },
+        { date: '06/11/26', team: 'FaZe Clan', opp: 'Team Spirit', oppFlag: 'ru', event: 'BLAST Premier Final', map: 'Inferno', score: '13 - 11', kills: 14, deaths: 16, adr: 63.0, rating: 0.91 },
+        { date: '02/11/26', team: 'FaZe Clan', opp: 'MOUZ', oppFlag: 'eu', event: 'PGL Major Copenhagen', map: 'Anubis', score: '13 - 6', kills: 17, deaths: 11, adr: 79.8, rating: 1.22 },
+        { date: '29/10/26', team: 'FaZe Clan', opp: 'Team Falcons', oppFlag: 'sa', event: 'IEM Cologne', map: 'Dust2', score: '9 - 13', kills: 10, deaths: 17, adr: 51.2, rating: 0.69 }
+      ],
+      trophies: [
+        { title: 'PGL Major Antwerp', year: '2022', type: 'Major' },
+        { title: 'IEM Cologne', year: '2022', type: 'BigEvent' },
+        { title: 'IEM Katowice', year: '2022', type: 'BigEvent' },
+        { title: 'Intel Grand Slam S4', year: '2023', type: 'Major' },
+        { title: 'ESL Pro League S17', year: '2023', type: 'BigEvent' },
+        { title: 'IEM Sydney CS2', year: '2023', type: 'BigEvent' },
+        { title: 'IEM Chengdu', year: '2024', type: 'BigEvent' }
+      ],
+      placements: [
+        { place: '1st', event: 'PGL Major Antwerp', team: 'FaZe Clan', date: 'May 2022', prize: '$500,000' },
+        { place: '1st', event: 'Intel Grand Slam Season 4', team: 'FaZe Clan', date: 'Mar 2023', prize: '$1,000,000' },
+        { place: '1st', event: 'IEM Cologne', team: 'FaZe Clan', date: 'Jul 2022', prize: '$400,000' },
+        { place: '1st', event: 'IEM Katowice', team: 'FaZe Clan', date: 'Feb 2022', prize: '$400,000' },
+        { place: '2nd', event: 'Perfect World Shanghai Major', team: 'FaZe Clan', date: 'Dec 2024', prize: '$170,000' },
+        { place: '2nd', event: 'PGL CS2 Major Copenhagen', team: 'FaZe Clan', date: 'Mar 2024', prize: '$170,000' }
+      ]
+    };
+
+    // --- PERFORMANCE BAND HELPERS ---
+    function getScoreBand(score) {
+      if (score < 34) return { cls: 'belowAverage', label: 'Poor', color: '#ff4e4e' };
+      if (score < 66) return { cls: 'average', label: 'Okay', color: '#f5a623' };
+      return { cls: 'aboveAverage', label: 'Good', color: '#04bc6c' };
+    }
+
+    function getRatingBand(rating) {
+      if (rating < 0.95) return { cls: 'belowAverage', label: 'Poor', color: '#ff4e4e' };
+      if (rating < 1.10) return { cls: 'average', label: 'Okay', color: '#f5a623' };
+      return { cls: 'aboveAverage', label: 'Good', color: '#04bc6c' };
+    }
+
+    // --- INITIALIZE PAGE ---
+    window.onload = function () {
+      populateCountrySelect();
+      buildStudioRoleSliders();
+      syncStudioInputsFromState();
+      renderAll();
+    };
+
+    function populateCountrySelect() {
+      const sel = document.getElementById('inpCountry');
+      sel.innerHTML = COUNTRIES.map(c => `<option value="${c.code}">${c.name} (${c.code.toUpperCase()})</option>`).join('');
+    }
+
+    // --- MOBILE SIDEBAR DRAWER CONTROLS ---
+    function toggleMobileSidebar() {
+      const col = document.getElementById('leftSidebarCol');
+      const bd = document.getElementById('mobileSidebarBackdrop');
+      const isOpen = col.classList.toggle('mobile-open');
+      bd.classList.toggle('hidden', !isOpen);
+    }
+
+    function closeMobileSidebar() {
+      document.getElementById('leftSidebarCol').classList.remove('mobile-open');
+      document.getElementById('mobileSidebarBackdrop').classList.add('hidden');
+    }
+
+    // --- MASTER RENDER FUNCTION ---
+    function renderAll() {
+      document.documentElement.style.setProperty('--teamColor', state.player.teamColor || '#e31e24');
+
+      renderHeaderAndSidebarContext();
+      renderPlayerSummaryBox();
+      renderRoleStats();
+      renderClutchesTab();
+      renderWeaponsTab();
+      renderTeamsTab();
+      renderMatchesTab();
+      renderAchievementsTab();
+      renderRightSidebar();
+    }
+
+    // --- 1. RENDER HEADER & LEFT SIDEBAR CONTEXT ---
+    function renderHeaderAndSidebarContext() {
+      const p = state.player;
+      const countryObj = COUNTRIES.find(c => c.code === p.countryCode) || COUNTRIES[0];
+      const flagUrl = getFlagUrl(p.countryCode);
+      const photoSrc = p.photoUrl || createProPlayerCutoutSvg(p.teamColor);
+      const logoSrc = p.teamLogoUrl || createTeamLogoSvg(p.teamBrandKey, p.teamColor);
+
+      document.getElementById('sidebarPlayerImg').src = photoSrc;
+      document.getElementById('sidebarFlag').src = flagUrl;
+      document.getElementById('sidebarNickname').textContent = p.nickname;
+      document.getElementById('sidebarTeamName').textContent = p.teamName;
+
+      document.getElementById('tabTeamsBadge').textContent = state.teamsCareer.totalTeams;
+      document.getElementById('tabWeaponsBadge').textContent = state.weapons.length;
+
+      document.getElementById('mainFlagImg').src = flagUrl;
+      document.getElementById('mainCountryName').textContent = countryObj.name;
+      document.getElementById('mainTeamLogo').src = logoSrc;
+      document.getElementById('mainTeamName').textContent = p.teamName;
+      document.getElementById('mainPlayerPhoto').src = photoSrc;
+      document.getElementById('mainNickname').textContent = p.nickname;
+      document.getElementById('mainRealName').textContent = p.realName;
+      document.getElementById('mainAge').textContent = `${p.age} years`;
+      document.getElementById('mainRoleBadge').textContent = p.role;
+      document.getElementById('mainPrizeMoney').textContent = p.prizeMoney;
+      document.getElementById('mainTop20Badge').textContent = `Top 20: ${p.top20Peak}`;
+    }
+
+    // --- 2. RENDER PLAYER SUMMARY STAT BOX ---
+    function renderPlayerSummaryBox() {
+      const cs = state.coreStats;
+      const ecoMod = state.ecoAdjust ? 1.03 : 1.0;
+
+      const dispRating = +(cs.rating * (state.ecoAdjust ? 1.02 : 1)).toFixed(2);
+      const dispTRating = +(cs.tRating * (state.ecoAdjust ? 1.02 : 1)).toFixed(2);
+      const dispCTRating = +(cs.ctRating * (state.ecoAdjust ? 1.02 : 1)).toFixed(2);
+
+      document.getElementById('mainMapsCount').textContent = cs.maps;
+      document.getElementById('comparedToLabel').textContent = `vs. ${state.filters.comparedTo}`;
+      document.getElementById('ecoBadge').classList.toggle('hidden', !state.ecoAdjust);
+
+      const rBand = getRatingBand(dispRating);
+      const tBand = getRatingBand(dispTRating);
+      const ctBand = getRatingBand(dispCTRating);
+
+      document.getElementById('mainRatingValue').textContent = dispRating.toFixed(2);
+      const bandEl = document.getElementById('mainRatingBand');
+      bandEl.textContent = rBand.label;
+      bandEl.style.color = rBand.color;
+
+      const pct = Math.max(0.05, Math.min(1, (dispRating - 0.45) / (1.55 - 0.45)));
+      const dashOffset = 176 * (1 - pct);
+      const arc = document.getElementById('ratingGaugeArc');
+      arc.style.strokeDashoffset = dashOffset.toFixed(1);
+      arc.setAttribute('stroke', rBand.color);
+
+      const tEl = document.getElementById('tRatingValue');
+      tEl.textContent = dispTRating.toFixed(2);
+      tEl.style.color = tBand.color;
+
+      const ctEl = document.getElementById('ctRatingValue');
+      ctEl.textContent = dispCTRating.toFixed(2);
+      ctEl.style.color = ctBand.color;
+
+      const swingVal = +(cs.roundSwing + (state.ecoAdjust ? 0.15 : 0)).toFixed(2);
+      const dprVal = +(cs.dpr * (state.ecoAdjust ? 0.98 : 1)).toFixed(2);
+      const kastVal = Math.min(100, +(cs.kast * (state.ecoAdjust ? 1.01 : 1)).toFixed(1));
+      const mkVal = +(cs.multiKill * ecoMod).toFixed(1);
+      const adrVal = +(cs.adr * ecoMod).toFixed(1);
+      const kprVal = +(cs.kpr * ecoMod).toFixed(2);
+
+      const miniCards = [
+        { label: 'Round swing', display: (swingVal >= 0 ? '+' : '') + swingVal.toFixed(2) + '%', pct: clampPct((swingVal - (-4.0)) / (4.5 - (-4.0)) * 100), avgPct: 50 },
+        { label: 'DPR', display: dprVal.toFixed(2), pct: clampPct((0.78 - dprVal) / (0.78 - 0.54) * 100), avgPct: 52 },
+        { label: 'KAST', display: kastVal.toFixed(1) + '%', pct: clampPct((kastVal - 60) / (80 - 60) * 100), avgPct: 54 },
+        { label: 'Multi-kill', display: mkVal.toFixed(1) + '%', pct: clampPct((mkVal - 9) / (25 - 9) * 100), avgPct: 48 },
+        { label: 'ADR', display: adrVal.toFixed(1), pct: clampPct((adrVal - 52) / (95 - 52) * 100), avgPct: 52 },
+        { label: 'KPR', display: kprVal.toFixed(2), pct: clampPct((kprVal - 0.45) / (0.92 - 0.45) * 100), avgPct: 50 }
+      ];
+
+      document.getElementById('coreMiniStatsGrid').innerHTML = miniCards.map(c => {
+        const band = getScoreBand(c.pct);
+        const activeSeg = c.pct < 34 ? 0 : (c.pct < 66 ? 1 : 2);
+        return `
+          <div class="bg-[#191e23] border border-[#323c47] rounded p-2 flex flex-col justify-between">
+            <div class="flex items-baseline justify-between">
+              <span class="font-oswald text-[17px] font-bold leading-none text-white">${c.display}</span>
+              <span class="text-[9px] font-bold uppercase" style="color:${band.color}">${band.label}</span>
+            </div>
+            <div class="three-seg-bar">
+              <div class="seg" style="${activeSeg===0 ? `background-color:${band.color};opacity:0.45;` : ''}"></div>
+              <div class="seg" style="${activeSeg===1 ? `background-color:${band.color};opacity:0.45;` : ''}"></div>
+              <div class="seg" style="${activeSeg===2 ? `background-color:${band.color};opacity:0.45;` : ''}"></div>
+              ${state.showPlayerAvg ? `<div class="avg-tick" style="left:${c.avgPct}%"></div>` : ''}
+              <div class="bar-dot" style="left:${c.pct}%; background-color:${band.color};"></div>
+            </div>
+            <div class="text-[10px] font-semibold text-[#87a3bf] uppercase tracking-tight">${c.label}</div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function clampPct(v) {
+      return Math.max(4, Math.min(96, Math.round(v)));
+    }
+
+    // --- 3. RENDER ROLE STATS ---
+    function renderRoleStats() {
+      const sideMod = state.roleSide === 'ct' ? 4 : (state.roleSide === 't' ? -3 : 0);
+      const fpDef = ROLE_DEFINITIONS[0];
+      const fpScore = Math.max(1, Math.min(100, state.roles.firepower + sideMod));
+      document.getElementById('roleCard-firepower').innerHTML = buildRoleCardHtml(fpDef, fpScore, true);
+
+      const otherDefs = ROLE_DEFINITIONS.slice(1);
+      document.getElementById('sixRolesGrid').innerHTML = otherDefs.map(def => {
+        const rawScore = state.roles[def.key] ?? 50;
+        const score = Math.max(1, Math.min(100, rawScore + sideMod));
+        return `<div id="roleCard-${def.key}" class="bg-[#191e23] border border-[#38434f] rounded p-3 transition">${buildRoleCardHtml(def, score, false)}</div>`;
+      }).join('');
+    }
+
+    function buildRoleCardHtml(def, score, isFullWidth) {
+      const band = getScoreBand(score);
+      const isExpanded = !!state.expandedRoles[def.key];
+
+      const subRowsHtml = def.subStats.map((sub, idx) => {
+        const ratio = score / 100;
+        const val = sub.min + (sub.max - sub.min) * ratio;
+        const valFormatted = val.toFixed(sub.decimals) + sub.unit;
+        const subPct = clampPct(score + ((idx % 2 === 0 ? 3 : -3)));
+        const subBand = getScoreBand(subPct);
+        const activeSeg = subPct < 34 ? 0 : (subPct < 66 ? 1 : 2);
+
+        return `
+          <div class="py-1.5 border-t border-[#28313b]">
+            <div class="flex items-center justify-between text-[11px] mb-1">
+              <span class="text-[#dcdcdc]">${sub.label}</span>
+              <div class="flex items-center gap-2">
+                <span class="font-bold text-white">${valFormatted}</span>
+                <span class="text-[9px] font-bold uppercase w-8 text-right" style="color:${subBand.color}">${subBand.label}</span>
+              </div>
+            </div>
+            <div class="three-seg-bar !my-1">
+              <div class="seg" style="${activeSeg===0 ? `background-color:${subBand.color};opacity:0.45;` : ''}"></div>
+              <div class="seg" style="${activeSeg===1 ? `background-color:${subBand.color};opacity:0.45;` : ''}"></div>
+              <div class="seg" style="${activeSeg===2 ? `background-color:${subBand.color};opacity:0.45;` : ''}"></div>
+              ${state.showPlayerAvg ? `<div class="avg-tick" style="left:50%"></div>` : ''}
+              <div class="bar-dot" style="left:${subPct}%; background-color:${subBand.color};"></div>
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      return `
+        <div class="flex items-center justify-between mb-2">
+          <div class="flex items-center gap-2 editable-zone" onclick="openDrawer('roles')" title="Click to adjust ${def.title} score">
+            <span class="p-1.5 rounded bg-[#252b32] border border-[#38434f]" style="color:${band.color}">${def.icon}</span>
+            <span class="font-bold text-[13px] text-white">${def.title}</span>
+          </div>
+          <div class="flex items-center gap-2.5">
+            <div class="editable-zone flex items-baseline" onclick="openDrawer('roles')">
+              <span class="font-oswald text-[20px] font-bold leading-none" style="color:${band.color}">${score}</span>
+              <span class="text-[11px] text-[#87a3bf] font-semibold">/100</span>
+            </div>
+            <button onclick="toggleRoleExpand('${def.key}')" class="w-6 h-6 rounded bg-[#252b32] hover:bg-[#2d3844] border border-[#38434f] text-[#87a3bf] hover:text-white flex items-center justify-center">
+              <i class="fa fa-angle-${isExpanded ? 'up' : 'down'}"></i>
+            </button>
+          </div>
+        </div>
+
+        <div class="role-progress-track mb-1 editable-zone" onclick="openDrawer('roles')">
+          <div class="role-progress-fill" style="width:${score}%; background-color:${band.color};"></div>
+        </div>
+
+        <div class="${isExpanded ? 'block' : 'hidden'} mt-2.5 ${isFullWidth ? 'grid grid-cols-1 md:grid-cols-2 gap-x-6' : ''}">
+          ${subRowsHtml}
+        </div>
+      `;
+    }
+
+    function toggleRoleExpand(roleKey) {
+      state.expandedRoles[roleKey] = !state.expandedRoles[roleKey];
+      renderRoleStats();
+    }
+
+    function toggleAllRoleDetails() {
+      const anyClosed = Object.values(state.expandedRoles).some(v => !v);
+      Object.keys(state.expandedRoles).forEach(k => state.expandedRoles[k] = anyClosed);
+      document.getElementById('expandAllRolesBtn').textContent = anyClosed ? 'Collapse all details' : 'Expand all details';
+      renderRoleStats();
+    }
+
+    function setRoleSide(side) {
+      state.roleSide = side;
+      ['combined', 'ct', 't'].forEach(s => {
+        const btn = document.getElementById(`roleSideBtn-${s}`);
+        if (s === side) {
+          btn.classList.add('bg-[#2d3844]', 'text-white', 'font-bold');
+        } else {
+          btn.classList.remove('bg-[#2d3844]', 'text-white', 'font-bold');
+        }
+      });
+      renderRoleStats();
+    }
+
+    function jumpToRole(roleKey) {
+      switchTab('overview');
+      state.expandedRoles[roleKey] = true;
+      renderRoleStats();
+      setTimeout(() => {
+        const el = document.getElementById(`roleCard-${roleKey}`);
+        if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }, 60);
+    }
+
+    // --- 4. RENDER CLUTCHES TAB & OVERVIEW WIDGET (1v1..1v5 + 1vX COMBINED) ---
+    function renderClutchesTab() {
+      const keys = ['1v1', '1v2', '1v3', '1v4', '1v5'];
+      let totalWon = 0;
+      let totalLost = 0;
+      let weightedPoints = 0;
+
+      keys.forEach((k, idx) => {
+        const c = state.clutches[k] || { won: 0, lost: 0 };
+        const w = Number(c.won) || 0;
+        const l = Number(c.lost) || 0;
+        totalWon += w;
+        totalLost += l;
+        weightedPoints += w * (idx + 1);
+      });
+
+      const totalAttempts = totalWon + totalLost;
+      const winRate1vX = totalAttempts > 0 ? ((totalWon / totalAttempts) * 100).toFixed(1) : '0.0';
+      const totalRounds = Math.max(100, state.coreStats.maps * 21);
+      const clutchesPer24 = ((totalWon / totalRounds) * 24).toFixed(2);
+      const hltvClutchScore = Math.min(100, Math.round((weightedPoints / Math.max(1, state.coreStats.maps)) * 220));
+      const scoreBand = getScoreBand(hltvClutchScore);
+
+      document.getElementById('tabClutchesBadge').textContent = totalWon;
+
+      // Render Overview Quick Strip (1vX + 1v1..1v5)
+      const stripItems = [
+        { label: '1vX Total', won: totalWon, lost: totalLost, highlight: true },
+        ...keys.map(k => ({ label: k, won: state.clutches[k].won, lost: state.clutches[k].lost, highlight: false }))
+      ];
+
+      document.getElementById('overviewClutchStrip').innerHTML = stripItems.map(item => {
+        const tot = item.won + item.lost;
+        const pct = tot > 0 ? Math.round((item.won / tot) * 100) : 0;
+        return `
+          <div class="p-2 rounded border ${item.highlight ? 'bg-[#1d2834] border-[#4994df]' : 'bg-[#191e23] border-[#323c47]'}">
+            <div class="flex items-center justify-between text-[10px] mb-0.5">
+              <span class="font-bold uppercase ${item.highlight ? 'text-[#4994df]' : 'text-[#87a3bf]'}">${item.label}</span>
+              <span class="font-bold text-white">${pct}%</span>
+            </div>
+            <div class="font-oswald text-[16px] font-bold text-white leading-tight">
+              <span class="text-[#04bc6c]">${item.won}W</span> <span class="text-[#87a3bf] text-[12px]">/</span> <span class="text-[#ff4e4e]">${item.lost}L</span>
+            </div>
+            <div class="h-1.5 w-full bg-[#ff4e4e]/40 rounded-full overflow-hidden mt-1.5">
+              <div class="h-full bg-[#04bc6c]" style="width:${pct}%"></div>
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      // Render Top 1vX Combined Hero Banner in Clutches Tab
+      document.getElementById('clutchHero1vX').innerHTML = `
+        <div class="flex flex-wrap items-center justify-between gap-4">
+          <div>
+            <div class="flex items-center gap-2">
+              <span class="px-2 py-0.5 rounded bg-[#4994df]/20 border border-[#4994df] text-[#4994df] font-bold text-[10px] uppercase">1vX All Combined</span>
+              <span class="text-[11px] text-[#87a3bf]">Sum of all 1v1, 1v2, 1v3, 1v4 &amp; 1v5 situations</span>
+            </div>
+            <div class="flex items-baseline gap-3 mt-2">
+              <div class="font-oswald text-[32px] font-bold leading-none text-[#04bc6c]">${totalWon} <span class="text-[14px] uppercase font-sans font-bold text-[#dcdcdc]">Won</span></div>
+              <span class="text-[#87a3bf] text-xl">/</span>
+              <div class="font-oswald text-[32px] font-bold leading-none text-[#ff4e4e]">${totalLost} <span class="text-[14px] uppercase font-sans font-bold text-[#dcdcdc]">Failed</span></div>
+              <div class="ml-2 px-2.5 py-1 rounded bg-[#191e23] border border-[#38434f]">
+                <span class="font-oswald text-[20px] font-bold text-white">${winRate1vX}%</span>
+                <span class="text-[10px] text-[#87a3bf] uppercase block">1vX Win Rate</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="flex items-center gap-3">
+            <div class="text-center px-3 py-2 bg-[#191e23] rounded border border-[#38434f]">
+              <div class="font-oswald text-[20px] font-bold text-white">${totalAttempts}</div>
+              <div class="text-[10px] text-[#87a3bf] uppercase">Total 1vX</div>
+            </div>
+            <div class="text-center px-3 py-2 bg-[#191e23] rounded border border-[#38434f]">
+              <div class="font-oswald text-[20px] font-bold text-[#4994df]">${clutchesPer24}</div>
+              <div class="text-[10px] text-[#87a3bf] uppercase">Won / 24 Rnds</div>
+            </div>
+            <div class="text-center px-3 py-2 bg-[#191e23] rounded border border-[#38434f]">
+              <div class="font-oswald text-[20px] font-bold" style="color:${scoreBand.color}">${hltvClutchScore}/100</div>
+              <div class="text-[10px] text-[#87a3bf] uppercase">Clutch Score</div>
+            </div>
+          </div>
+        </div>
+        <div class="mt-3">
+          <div class="flex justify-between text-[10px] text-[#87a3bf] mb-1">
+            <span>Overall 1vX Won (${totalWon})</span>
+            <span>Overall 1vX Failed (${totalLost})</span>
+          </div>
+          <div class="h-2.5 w-full bg-[#ff4e4e]/45 rounded overflow-hidden flex">
+            <div class="h-full bg-[#04bc6c]" style="width:${winRate1vX}%"></div>
+          </div>
+        </div>
+      `;
+
+      // Render 6 Cards (1v1, 1v2, 1v3, 1v4, 1v5 + 1vX Summary Card)
+      const allCards = [
+        ...keys.map(k => ({
+          key: k,
+          title: `${k} Clutches`,
+          sub: `Player alone vs ${k.slice(2)} opponent${k === '1v1' ? '' : 's'}`,
+          won: state.clutches[k].won,
+          lost: state.clutches[k].lost,
+          isCombined: false
+        })),
+        {
+          key: '1vX',
+          title: '1vX Combined',
+          sub: 'All 1v1 through 1v5 situations combined',
+          won: totalWon,
+          lost: totalLost,
+          isCombined: true
+        }
+      ];
+
+      document.getElementById('clutchCardsGrid').innerHTML = allCards.map(c => {
+        const tot = c.won + c.lost;
+        const pct = tot > 0 ? ((c.won / tot) * 100).toFixed(1) : '0.0';
+        return `
+          <div class="standard-box p-3 ${c.isCombined ? 'border-[#4994df] bg-[#1e2731]' : ''}">
+            <div class="flex items-center justify-between mb-1">
+              <span class="font-oswald text-[18px] font-bold ${c.isCombined ? 'text-[#4994df]' : 'text-white'}">${c.title}</span>
+              <span class="text-[11px] font-bold px-2 py-0.5 rounded bg-[#191e23] text-white border border-[#38434f]">${pct}% Win</span>
+            </div>
+            <div class="text-[10px] text-[#87a3bf] mb-2.5">${c.sub}</div>
+            <div class="grid grid-cols-3 gap-1.5 text-center mb-2.5">
+              <div class="bg-[#191e23] p-1.5 rounded border border-[#323c47]">
+                <div class="font-oswald text-[18px] font-bold text-[#04bc6c]">${c.won}</div>
+                <div class="text-[9px] uppercase text-[#87a3bf]">Won</div>
+              </div>
+              <div class="bg-[#191e23] p-1.5 rounded border border-[#323c47]">
+                <div class="font-oswald text-[18px] font-bold text-[#ff4e4e]">${c.lost}</div>
+                <div class="text-[9px] uppercase text-[#87a3bf]">Failed</div>
+              </div>
+              <div class="bg-[#191e23] p-1.5 rounded border border-[#323c47]">
+                <div class="font-oswald text-[18px] font-bold text-white">${tot}</div>
+                <div class="text-[9px] uppercase text-[#87a3bf]">Total</div>
+              </div>
+            </div>
+            <div class="h-2 w-full bg-[#ff4e4e]/45 rounded-full overflow-hidden">
+              <div class="h-full bg-[#04bc6c]" style="width:${pct}%"></div>
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      // Render Notable Clutches Log Table
+      document.getElementById('clutchLogTableBody').innerHTML = state.clutchLog.map((item, idx) => {
+        const isWon = item.outcome === 'Won';
+        return `
+          <tr class="hover:bg-[#2d3844]/60 transition">
+            <td class="py-2 px-3 text-[#87a3bf]">${item.date}</td>
+            <td class="py-2 px-2 font-bold text-white">vs. ${item.opp}</td>
+            <td class="py-2 px-2 text-[#dcdcdc]">${item.event}</td>
+            <td class="py-2 px-2 text-[#4994df] font-semibold">${item.map}</td>
+            <td class="py-2 px-2 text-center">
+              <span class="px-2 py-0.5 rounded bg-[#191e23] border border-[#38434f] font-bold text-white">${item.situation}</span>
+            </td>
+            <td class="py-2 px-3 text-right">
+              <span class="font-bold px-2 py-0.5 rounded ${isWon ? 'bg-[#04bc6c]/20 text-[#04bc6c]' : 'bg-[#ff4e4e]/20 text-[#ff4e4e]'}">${item.outcome}</span>
+            </td>
+            <td class="py-2 px-2 text-right hide-in-screenshot">
+              <button onclick="removeClutchLogItem(${idx})" class="text-[#ff4e4e] hover:underline"><i class="fa fa-trash"></i></button>
+            </td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    function addClutchLogItem() {
+      state.clutchLog.unshift({
+        date: '12/11/26',
+        opp: 'Team Falcons',
+        event: 'Major Playoffs',
+        map: 'Mirage',
+        situation: '1v3',
+        outcome: 'Won'
+      });
+      renderClutchesTab();
+      showToast('Added clutch highlight to log!');
+    }
+
+    function removeClutchLogItem(idx) {
+      state.clutchLog.splice(idx, 1);
+      renderClutchesTab();
+    }
+
+    // --- 5. RENDER COMPLETE CS2 WEAPONS TAB (ALL 34 WEAPONS, KILLS & ROUNDS CARRIED) ---
+    function renderWeaponsTab() {
+      const totalKills = state.weapons.reduce((acc, w) => acc + (Number(w.kills) || 0), 0) || 1;
+      const totalRounds = state.weapons.reduce((acc, w) => acc + (Number(w.rounds) || 0), 0) || 1;
+
+      document.getElementById('totalWeaponKillsLabel').innerHTML = `Total kills: <strong class="text-white">${totalKills.toLocaleString()}</strong>`;
+      document.getElementById('totalWeaponRoundsLabel').innerHTML = `Total rounds: <strong class="text-white">${totalRounds.toLocaleString()}</strong>`;
+
+      const categories = ['Rifles', 'Snipers', 'SMGs', 'Pistols', 'Grenades', 'Other'];
+      const catStats = {};
+      categories.forEach(c => catStats[c] = { kills: 0, rounds: 0 });
+
+      state.weapons.forEach(w => {
+        const c = catStats[w.category] ? w.category : 'Other';
+        catStats[c].kills += Number(w.kills) || 0;
+        catStats[c].rounds += Number(w.rounds) || 0;
+      });
+
+      // Render 6 .weapon-type-tile cards
+      document.getElementById('weaponCategoriesGrid').innerHTML = categories.map(cat => {
+        const st = catStats[cat];
+        const killPct = ((st.kills / totalKills) * 100).toFixed(1);
+        const roundPct = ((st.rounds / totalRounds) * 100).toFixed(1);
+        const color = WEAPON_CATEGORY_COLORS[cat];
+        return `
+          <div class="weapon-type-tile">
+            <div class="flex items-center justify-between mb-1">
+              <span class="text-[11px] font-bold uppercase flex items-center gap-1.5" style="color:${color}">
+                <span class="w-2.5 h-2.5 rounded-sm inline-block" style="background-color:${color}"></span>
+                ${cat}
+              </span>
+              <span class="font-oswald text-[20px] font-bold text-white leading-none">${killPct}%</span>
+            </div>
+            <div class="flex items-center justify-between text-[10px] text-[#87a3bf] mb-2">
+              <span><strong class="text-[#dcdcdc]">${st.kills.toLocaleString()}</strong> kills</span>
+              <span><strong class="text-[#dcdcdc]">${st.rounds.toLocaleString()}</strong> rnds (${roundPct}%)</span>
+            </div>
+            <div class="role-progress-track">
+              <div class="role-progress-fill" style="width:${Math.max(3, parseFloat(killPct))}%; background-color:${color}"></div>
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      // Render Category Filter Buttons
+      const filterOpts = ['All', ...categories];
+      document.getElementById('weaponCategoryFilterBtns').innerHTML = filterOpts.map(cat => {
+        const active = state.weaponCategoryFilter === cat;
+        const color = WEAPON_CATEGORY_COLORS[cat] || '#4994df';
+        return `
+          <button onclick="setWeaponCategoryFilter('${cat}')"
+                  class="px-2.5 py-1 rounded text-[11px] font-bold border transition flex items-center gap-1.5 ${active ? 'bg-[#2d3844] text-white border-[#4994df]' : 'bg-[#252b32] text-[#87a3bf] border-[#38434f] hover:text-white'}">
+            ${cat !== 'All' ? `<span class="w-2 h-2 rounded-full" style="background-color:${color}"></span>` : ''}
+            <span>${cat}</span>
+          </button>
+        `;
+      }).join('');
+
+      const filteredWeapons = state.weaponCategoryFilter === 'All'
+        ? state.weapons
+        : state.weapons.filter(w => w.category === state.weaponCategoryFilter);
+
+      // 1) Kills by weapon (Top 20 sorted by kills)
+      const sortedByKills = [...filteredWeapons].sort((a, b) => b.kills - a.kills).slice(0, 16);
+      const maxKills = Math.max(1, sortedByKills[0]?.kills || 1);
+
+      document.getElementById('topWeaponsBars').innerHTML = sortedByKills.map((w, idx) => {
+        const widthPct = Math.max(2, Math.round((w.kills / maxKills) * 100));
+        const sharePct = ((w.kills / totalKills) * 100).toFixed(1);
+        const color = WEAPON_CATEGORY_COLORS[w.category] || '#36a2eb';
+        return `
+          <div class="editable-zone" onclick="openDrawer('weapons')">
+            <div class="flex justify-between text-[11px] mb-0.5">
+              <span class="font-bold text-white">${idx + 1}. ${w.name} <span class="text-[10px] font-normal text-[#87a3bf]">(${w.category})</span></span>
+              <span class="text-[#dcdcdc]"><strong class="text-white">${w.kills.toLocaleString()}</strong> (${sharePct}%)</span>
+            </div>
+            <div class="role-progress-track">
+              <div class="role-progress-fill" style="width:${widthPct}%; background-color:${color}"></div>
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      // 2) Weapons carried (Top 16 sorted by rounds carried)
+      const sortedByRounds = [...filteredWeapons].filter(w => w.rounds > 0 || w.kills > 0).sort((a, b) => b.rounds - a.rounds).slice(0, 16);
+      const maxRounds = Math.max(1, sortedByRounds[0]?.rounds || 1);
+
+      document.getElementById('topWeaponsCarriedBars').innerHTML = sortedByRounds.map((w, idx) => {
+        const widthPct = Math.max(2, Math.round((w.rounds / maxRounds) * 100));
+        const sharePct = ((w.rounds / totalRounds) * 100).toFixed(1);
+        const color = WEAPON_CATEGORY_COLORS[w.category] || '#4bc0c0';
+        return `
+          <div class="editable-zone" onclick="openDrawer('weapons')">
+            <div class="flex justify-between text-[11px] mb-0.5">
+              <span class="font-bold text-white">${idx + 1}. ${w.name}</span>
+              <span class="text-[#dcdcdc]"><strong class="text-white">${w.rounds.toLocaleString()}</strong> rnds (${sharePct}%)</span>
+            </div>
+            <div class="role-progress-track">
+              <div class="role-progress-fill" style="width:${widthPct}%; background-color:${color}"></div>
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      // 3) Extended Weapon Overview (All weapons ranked 1 to N)
+      const allSorted = [...state.weapons].sort((a, b) => b.kills - a.kills);
+      document.getElementById('extendedWeaponsGrid').innerHTML = allSorted.map((w, i) => {
+        const color = WEAPON_CATEGORY_COLORS[w.category] || '#c9cbcf';
+        return `
+          <div class="stats-row editable-zone flex items-center justify-between py-1.5 px-2.5 bg-[#191e23] hover:bg-[#2d3844] rounded border border-[#323c47] transition" onclick="openDrawer('weapons')">
+            <div class="flex items-center gap-2 min-w-0">
+              <span class="text-[#87a3bf] w-5 text-right font-mono">${i + 1}.</span>
+              <span class="w-2 h-2 rounded-full shrink-0" style="background-color:${color}"></span>
+              <span class="font-bold text-white truncate">${w.name}</span>
+              <span class="text-[10px] text-[#87a3bf]">(${w.category})</span>
+            </div>
+            <div class="flex items-center gap-3 shrink-0">
+              <span class="text-[10px] text-[#87a3bf]">${Number(w.rounds).toLocaleString()} rnds</span>
+              <span class="font-bold text-[#4994df] min-w-[45px] text-right">${Number(w.kills).toLocaleString()} K</span>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function setWeaponCategoryFilter(cat) {
+      state.weaponCategoryFilter = cat;
+      renderWeaponsTab();
+    }
+
+    // --- 6. RENDER TEAMS & LINEUP TAB ---
+    function renderTeamsTab() {
+      const tc = state.teamsCareer;
+      const p = state.player;
+
+      document.getElementById('statTeamsCount').textContent = tc.totalTeams.toLocaleString();
+      document.getElementById('statDaysCurrentTeam').textContent = tc.daysInCurrentTeam.toLocaleString();
+      document.getElementById('statDaysInTeams').textContent = tc.daysInTeams.toLocaleString();
+      document.getElementById('statTeamsPrizeMoney').textContent = p.prizeMoney;
+
+      const logoSrc = p.teamLogoUrl || createTeamLogoSvg(p.teamBrandKey, p.teamColor);
+      document.getElementById('lineupTeamLogo').src = logoSrc;
+      document.getElementById('lineupTeamTitle').textContent = `${p.teamName} — Active Lineup`;
+
+      const fiveLineup = [
+        {
+          nickname: p.nickname,
+          realName: p.realName,
+          countryCode: p.countryCode,
+          role: p.role,
+          rating: state.coreStats.rating,
+          photoUrl: p.photoUrl || createProPlayerCutoutSvg(p.teamColor),
+          isMain: true
+        },
+        ...state.teammates.slice(0, 4).map(tm => ({
+          ...tm,
+          photoUrl: tm.photoUrl || createProPlayerCutoutSvg(p.teamColor),
+          isMain: false
+        }))
+      ];
+
+      document.getElementById('fivePlayerLineupGrid').innerHTML = fiveLineup.map(member => {
+        const band = getRatingBand(member.rating);
+        const roleIcon = member.role.includes('IGL')
+          ? '<i class="fa fa-trophy text-[#f5a623]" title="In-Game Leader"></i>'
+          : (member.role.includes('AWP') ? '<i class="fa fa-crosshairs text-[#4994df]" title="AWPer"></i>' : '<i class="fa fa-bolt text-[#dcdcdc]" title="Rifler"></i>');
+
+        return `
+          <div class="teammate-card editable-zone flex flex-col justify-between" onclick="openDrawer('teams')" title="Click to customize lineup">
+            <div class="p-2 flex items-center justify-between text-[10px] bg-[#141a21]/90 border-b border-[#2d3844]">
+              <span class="flex items-center gap-1 font-bold text-[#dcdcdc]">${roleIcon} <span class="truncate max-w-[68px]">${member.role}</span></span>
+              ${member.isMain ? '<span class="text-[9px] bg-[#4994df]/20 text-[#4994df] px-1 rounded font-bold">PRO</span>' : ''}
+            </div>
+            <div class="relative h-[120px] flex items-end justify-center pt-2 px-1 overflow-hidden bg-gradient-to-t from-[#111820] to-transparent">
+              <img src="${member.photoUrl}" alt="${member.nickname}" class="max-h-[112px] w-auto object-contain object-bottom drop-shadow" />
+            </div>
+            <div class="p-2 bg-[#252b32] border-t border-[#38434f]">
+              <div class="flex items-center gap-1.5">
+                <img src="${getFlagUrl(member.countryCode)}" alt="Flag" class="w-3.5 h-2.5 object-cover rounded-[1px]" />
+                <span class="font-bold text-[12px] text-white truncate">${member.nickname}</span>
+              </div>
+              <div class="text-[10px] text-[#87a3bf] truncate mb-1.5">${member.realName}</div>
+              <div class="flex items-center justify-between pt-1 border-t border-[#323c47] text-[10px]">
+                <span class="text-[#87a3bf]">Rating 3.0</span>
+                <span class="font-oswald font-bold text-[12px] px-1.5 py-0.2 rounded bg-[#191e23]" style="color:${band.color}">${Number(member.rating).toFixed(2)}</span>
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      document.getElementById('teammatesTableBody').innerHTML = state.teammates.map((tm, idx) => {
+        const band = getRatingBand(tm.rating);
+        return `
+          <tr class="hover:bg-[#2d3844]/60 transition">
+            <td class="py-2 px-3">
+              <div class="flex items-center gap-2">
+                <img src="${getFlagUrl(tm.countryCode)}" class="w-4 h-3 object-cover rounded-[1px]" alt="Flag" />
+                <div>
+                  <span class="font-bold text-white">${tm.nickname}</span>
+                  <span class="text-[10px] text-[#87a3bf] ml-1">(${tm.realName})</span>
+                </div>
+              </div>
+            </td>
+            <td class="py-2 px-2">
+              <span class="text-[10px] bg-[#191e23] text-[#dcdcdc] px-2 py-0.5 rounded border border-[#38434f]">${tm.role}</span>
+            </td>
+            <td class="py-2 px-2 text-center text-[#dcdcdc]">${tm.maps}</td>
+            <td class="py-2 px-2 text-center text-[#dcdcdc]">${tm.days}d</td>
+            <td class="py-2 px-3 text-right">
+              <span class="font-oswald font-bold text-[13px]" style="color:${band.color}">${Number(tm.rating).toFixed(2)}</span>
+            </td>
+            <td class="py-2 px-2 text-right hide-in-screenshot">
+              <button onclick="openDrawer('teams')" class="text-[#4994df] hover:underline mr-2"><i class="fa fa-pencil"></i></button>
+              <button onclick="removeTeammate(${idx})" class="text-[#ff4e4e] hover:underline"><i class="fa fa-trash"></i></button>
+            </td>
+          </tr>
+        `;
+      }).join('');
+
+      const currentEntry = {
+        period: 'Current Active',
+        team: p.teamName,
+        days: tc.daysInCurrentTeam,
+        maps: state.coreStats.maps,
+        rating: state.coreStats.rating
+      };
+      const allHistory = [currentEntry, ...state.teamHistory.slice(1)];
+
+      document.getElementById('teamHistoryTableBody').innerHTML = allHistory.map((h, i) => {
+        const band = getRatingBand(h.rating);
+        return `
+          <tr class="hover:bg-[#2d3844]/60 transition ${i===0 ? 'bg-[#1e262f]' : ''}">
+            <td class="py-2 px-3 text-[#87a3bf]">${h.period}</td>
+            <td class="py-2 px-3 font-bold text-white flex items-center gap-1.5">
+              ${i===0 ? `<img src="${logoSrc}" class="w-3.5 h-3.5 object-contain" />` : '<i class="fa fa-shield text-[#87a3bf]"></i>'}
+              <span>${h.team}</span>
+            </td>
+            <td class="py-2 px-2 text-center text-[#dcdcdc]">${h.days.toLocaleString()}d</td>
+            <td class="py-2 px-2 text-center text-[#dcdcdc]">${h.maps}</td>
+            <td class="py-2 px-3 text-right font-oswald font-bold text-[13px]" style="color:${band.color}">${Number(h.rating).toFixed(2)}</td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    // --- 7. RENDER FULLY CUSTOMIZABLE MATCHES TAB ---
+    function renderMatchesTab() {
+      const pFlag = getFlagUrl(state.player.countryCode);
+      document.getElementById('matchesTableBody').innerHTML = state.matches.map((m, idx) => {
+        const kills = Number(m.kills) || 0;
+        const deaths = Number(m.deaths) || 0;
+        const diff = kills - deaths;
+        const rating = Number(m.rating) || 1.00;
+        const band = getRatingBand(rating);
+
+        // Parse score to highlight Win (green) vs Loss (red)
+        const parts = (m.score || '13 - 9').split('-').map(s => parseInt(s.trim(), 10));
+        const isWin = (parts[0] || 0) >= (parts[1] || 0);
+
+        return `
+          <tr class="hover:bg-[#2d3844]/60 transition editable-zone" onclick="openDrawer('matches')">
+            <td class="py-2 px-2.5 text-[#87a3bf] whitespace-nowrap">${m.date}</td>
+            <td class="py-2 px-2 font-bold text-white whitespace-nowrap">
+              <div class="flex items-center gap-1.5">
+                <img src="${pFlag}" class="w-3.5 h-2.5 object-cover rounded-[1px]" alt="Flag" />
+                <span>${m.team}</span>
+              </div>
+            </td>
+            <td class="py-2 px-2 text-[#dcdcdc] whitespace-nowrap">
+              <div class="flex items-center gap-1.5">
+                <img src="${getFlagUrl(m.oppFlag || 'eu')}" class="w-3.5 h-2.5 object-cover rounded-[1px]" alt="Flag" />
+                <span>${m.opp}</span>
+              </div>
+            </td>
+            <td class="py-2 px-2 text-[#87a3bf] truncate max-w-[120px]">${m.event || 'Big Event'}</td>
+            <td class="py-2 px-2 text-[#4994df] font-semibold">${m.map}</td>
+            <td class="py-2 px-2 text-center font-bold ${isWin ? 'text-[#04bc6c]' : 'text-[#ff4e4e]'} whitespace-nowrap">${m.score || '13 - 9'}</td>
+            <td class="py-2 px-2 text-center text-white font-semibold whitespace-nowrap">${kills} - ${deaths}</td>
+            <td class="py-2 px-1.5 text-center font-bold ${diff >= 0 ? 'text-[#04bc6c]' : 'text-[#ff4e4e]'}">${diff >= 0 ? '+' + diff : diff}</td>
+            <td class="py-2 px-1.5 text-center text-[#dcdcdc]">${Number(m.adr).toFixed(1)}</td>
+            <td class="py-2 px-2.5 text-right font-oswald font-bold text-[13px]" style="color:${band.color}">${rating.toFixed(2)}</td>
+            <td class="py-2 px-2 text-right hide-in-screenshot" onclick="event.stopPropagation()">
+              <button onclick="openDrawer('matches')" class="text-[#4994df] hover:underline mr-1.5"><i class="fa fa-pencil"></i></button>
+              <button onclick="removeMatchRow(${idx})" class="text-[#ff4e4e] hover:underline"><i class="fa fa-trash"></i></button>
+            </td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    function addNewMatchRow() {
+      state.matches.unshift({
+        date: '12/11/26',
+        team: state.player.teamName,
+        opp: 'Team Vitality',
+        oppFlag: 'fr',
+        event: 'Major Grand Final',
+        map: 'Mirage',
+        score: '13 - 7',
+        kills: 24,
+        deaths: 11,
+        adr: 96.5,
+        rating: 1.48
+      });
+      renderMatchesTab();
+      renderStudioMatches();
+      showToast('Added new match to Match History!');
+    }
+
+    function removeMatchRow(idx) {
+      state.matches.splice(idx, 1);
+      renderMatchesTab();
+      renderStudioMatches();
+    }
+
+    // --- 8. RENDER FULLY CUSTOMIZABLE ACHIEVEMENTS & TROPHY CABINET ---
+    function renderAchievementsTab() {
+      const p = state.player;
+      document.getElementById('trophyMajorsCount').textContent = p.majorsWon;
+      document.getElementById('trophyBigEventsCount').textContent = p.bigEventsWon;
+      document.getElementById('trophyMvpsCount').textContent = p.mvpsWon;
+      document.getElementById('trophyEvpsCount').textContent = p.evpsWon;
+      document.getElementById('trophyTop20Text').textContent = p.top20Peak;
+      document.getElementById('trophyPrizeTotal').textContent = p.prizeMoney;
+
+      document.getElementById('topShelfSummaryBadges').textContent = `${p.majorsWon}x Major • ${p.bigEventsWon}x Big Events • ${p.mvpsWon}x MVP`;
+
+      // Top Trophy Shelf (.trophyRow)
+      document.getElementById('topTrophyShelfRow').innerHTML = state.trophies.map(t => {
+        const isMajor = t.type === 'Major';
+        const color = isMajor ? '#f5a623' : '#cbd5e1';
+        return `
+          <div class="trophy-item shrink-0" title="${t.title} (${t.year})">
+            <i class="fa fa-trophy text-[16px]" style="color:${color}"></i>
+            <span class="text-[9px] font-bold text-[#dcdcdc] truncate max-w-[72px] mt-0.5">${t.title}</span>
+          </div>
+        `;
+      }).join('');
+
+      // Visual Trophy Showcase Grid in Achievements Tab
+      document.getElementById('trophiesShowcaseGrid').innerHTML = state.trophies.map((ev, idx) => {
+        const isMajor = ev.type === 'Major';
+        const color = isMajor ? '#f5a623' : '#4994df';
+        return `
+          <div class="bg-[#191e23] border border-[#38434f] rounded p-3 flex items-center justify-between gap-3 editable-zone" onclick="openDrawer('achievements')">
+            <div class="flex items-center gap-3 min-w-0">
+              <div class="w-10 h-10 rounded-full bg-[#252b32] border border-[#38434f] flex items-center justify-center shrink-0" style="color:${color}">
+                <i class="fa fa-trophy text-lg"></i>
+              </div>
+              <div class="min-w-0">
+                <div class="font-bold text-white text-[12px] truncate">${ev.title}</div>
+                <div class="text-[10px] text-[#87a3bf]">${ev.year} • <span class="font-bold" style="color:${color}">${isMajor ? 'Major / Grand Slam' : 'Big Event LAN'}</span></div>
+              </div>
+            </div>
+            <button onclick="event.stopPropagation(); removeTrophyItem(${idx});" class="hide-in-screenshot text-[#ff4e4e] hover:underline text-xs"><i class="fa fa-trash"></i></button>
+          </div>
+        `;
+      }).join('');
+
+      // Tournament Placements Table
+      document.getElementById('placementsTableBody').innerHTML = state.placements.map((pl, idx) => {
+        const pStr = (pl.place || '').toLowerCase();
+        const badgeCls = pStr.includes('1st')
+          ? 'bg-[#f5a623]/20 text-[#f5a623] border-[#f5a623]/40'
+          : (pStr.includes('2nd') ? 'bg-[#cbd5e1]/20 text-[#e2e8f0] border-[#cbd5e1]/40' : 'bg-[#d97706]/20 text-[#f59e0b] border-[#d97706]/40');
+        return `
+          <tr class="hover:bg-[#2d3844]/60 transition editable-zone" onclick="openDrawer('achievements')">
+            <td class="py-2 px-3">
+              <span class="px-2 py-0.5 rounded border font-bold text-[10px] ${badgeCls}">${pl.place}</span>
+            </td>
+            <td class="py-2 px-3 font-bold text-white">${pl.event}</td>
+            <td class="py-2 px-2 text-[#dcdcdc]">${pl.team}</td>
+            <td class="py-2 px-2 text-[#87a3bf]">${pl.date}</td>
+            <td class="py-2 px-3 text-right font-bold text-[#04bc6c]">${pl.prize}</td>
+            <td class="py-2 px-2 text-right hide-in-screenshot" onclick="event.stopPropagation()">
+              <button onclick="removePlacementRow(${idx})" class="text-[#ff4e4e] hover:underline"><i class="fa fa-trash"></i></button>
+            </td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    function addNewTrophyItem() {
+      state.trophies.unshift({
+        title: 'PGL CS2 Major',
+        year: '2026',
+        type: 'Major'
+      });
+      state.player.majorsWon = (Number(state.player.majorsWon) || 0) + 1;
+      syncStudioInputsFromState();
+      renderAll();
+      showToast('Added new Trophy to Cabinet!');
+    }
+
+    function removeTrophyItem(idx) {
+      state.trophies.splice(idx, 1);
+      renderStudioAchievements();
+      renderAchievementsTab();
+    }
+
+    function addNewPlacementRow() {
+      state.placements.unshift({
+        place: '1st',
+        event: 'IEM Katowice 2026',
+        team: state.player.teamName,
+        date: 'Feb 2026',
+        prize: '$400,000'
+      });
+      renderStudioAchievements();
+      renderAchievementsTab();
+      showToast('Added tournament placement row!');
+    }
+
+    function removePlacementRow(idx) {
+      state.placements.splice(idx, 1);
+      renderStudioAchievements();
+      renderAchievementsTab();
+    }
+
+    // --- 9. RENDER RIGHT SIDEBAR ---
+    function renderRightSidebar() {
+      const nick = state.player.nickname;
+      const team = state.player.teamName;
+      const rating = state.coreStats.rating.toFixed(2);
+
+      const threads = [
+        { title: `${nick} (${rating} Rating 3.0) official HLTV stats thread`, replies: 184, hot: true },
+        { title: `FIRST EVER 0:13 FOR ZYWOO`, replies: 342 },
+        { title: `m0NESY rifle > Niko Rifle`, replies: 129 },
+        { title: `Can ${team} win the next Major with ${nick}?`, replies: 97 },
+        { title: `${nick} 1vX clutch record is insane`, replies: 78 },
+        { title: `Best IGLs in CS2 history ranked`, replies: 211 },
+        { title: `${nick} prize money now at ${state.player.prizeMoney}`, replies: 53 }
+      ];
+
+      document.getElementById('recentActivityList').innerHTML = threads.map(t => `
+        <a href="#forum" onclick="showToast('Thread: ${t.title.replace(/'/g, '')}'); return false;" class="flex items-center justify-between px-2.5 py-1.5 hover:bg-[#2d3844] transition">
+          <span class="truncate pr-2 ${t.hot ? 'text-[#4994df] font-semibold' : 'text-[#dcdcdc]'}">${t.title}</span>
+          <span class="text-[10px] text-[#87a3bf] font-semibold shrink-0">${t.replies}</span>
+        </a>
+      `).join('');
+
+      const transfers = [
+        { player: nick, flag: state.player.countryCode, from: 'Core', to: team },
+        { player: 'NiKo', flag: 'ba', from: 'G2', to: 'Falcons' },
+        { player: 'm0NESY', flag: 'ru', from: 'G2', to: 'Falcons' },
+        { player: 'EliGE', flag: 'us', from: 'Complexity', to: 'FaZe' },
+        { player: 'ropz', flag: 'ee', from: 'FaZe', to: 'Vitality' }
+      ];
+
+      document.getElementById('recentTransfersList').innerHTML = transfers.map(tr => `
+        <div class="px-2.5 py-1.5 flex items-center justify-between">
+          <div class="flex items-center gap-1.5 min-w-0">
+            <img src="${getFlagUrl(tr.flag)}" class="w-3.5 h-2.5 object-cover rounded-[1px]" alt="Flag" />
+            <span class="font-bold text-white truncate">${tr.player}</span>
+          </div>
+          <div class="text-[10px] text-[#87a3bf] truncate">
+            <span>${tr.from}</span> <i class="fa fa-long-arrow-right text-[#4994df] mx-1"></i> <strong class="text-[#dcdcdc]">${tr.to}</strong>
+          </div>
+        </div>
+      `).join('');
+
+      const streams = [
+        { name: 'ohnePixel', flag: 'de', viewers: '42,810' },
+        { name: 'gaules', flag: 'br', viewers: '31,450' },
+        { name: 'Recrent', flag: 'ru', viewers: '18,920' },
+        { name: 'jL', flag: 'lt', viewers: '11,340' },
+        { name: 'deko', flag: 'ru', viewers: '7,615' }
+      ];
+
+      document.getElementById('topStreamsList').innerHTML = streams.map(st => `
+        <a href="#stream" onclick="showToast('Watching ${st.name} live stream'); return false;" class="px-2.5 py-1.5 flex items-center justify-between hover:bg-[#2d3844] transition">
+          <div class="flex items-center gap-1.5">
+            <img src="${getFlagUrl(st.flag)}" class="w-3.5 h-2.5 object-cover rounded-[1px]" alt="Flag" />
+            <span class="text-[#dcdcdc] font-semibold">${st.name}</span>
+          </div>
+          <span class="text-[10px] text-[#87a3bf]">${st.viewers} <i class="fa fa-user text-[9px] ml-0.5"></i></span>
+        </a>
+      `).join('');
+    }
+
+    // --- TAB & FILTER CONTROLS ---
+    function switchTab(tabKey) {
+      state.activeTab = tabKey;
+      const tabs = ['overview', 'clutches', 'weapons', 'teams', 'matches', 'achievements'];
+      tabs.forEach(t => {
+        const content = document.getElementById(`tabContent-${t}`);
+        const btn = document.getElementById(`tabBtn-${t}`);
+        const sideLink = document.getElementById(`sideNav-${t}`);
+        if (content) content.classList.toggle('hidden', t !== tabKey);
+        if (btn) {
+          if (t === tabKey) {
+            btn.className = 'px-3.5 py-2.5 text-[12px] font-bold text-[#4994df] border-b-2 border-[#4994df] bg-[#191e23] whitespace-nowrap transition flex items-center gap-1.5';
+          } else {
+            btn.className = 'px-3.5 py-2.5 text-[12px] font-semibold text-[#87a3bf] hover:text-white border-b-2 border-transparent whitespace-nowrap transition flex items-center gap-1.5';
+          }
+        }
+        if (sideLink) {
+          if (t === tabKey) {
+            sideLink.className = 'block px-2.5 py-1.5 font-bold text-[#4994df] bg-[#191e23] hover:bg-[#2d3844]';
+          } else {
+            sideLink.className = 'block px-2.5 py-1.5 text-[#dcdcdc] hover:bg-[#2d3844] hover:text-[#4994df]';
+          }
+        }
+      });
+    }
+
+    function toggleShowAvg(checked) {
+      state.showPlayerAvg = checked;
+      renderPlayerSummaryBox();
+      renderRoleStats();
+    }
+
+    function toggleEcoAdjust(checked) {
+      state.ecoAdjust = checked;
+      renderPlayerSummaryBox();
+    }
+
+    function updateComparedTo(val) {
+      state.filters.comparedTo = val;
+      renderPlayerSummaryBox();
+    }
+
+    function setFilterChip(type, val) {
+      state.filters[type] = val;
+      if (type === 'version' && document.getElementById('chipVersion')) document.getElementById('chipVersion').value = val;
+      if (type === 'matchType' && document.getElementById('chipMatchType')) document.getElementById('chipMatchType').value = val;
+      if (type === 'time' && document.getElementById('chipTime')) document.getElementById('chipTime').value = val;
+      showToast(`Filter updated: ${val}`);
+    }
+
+    // --- SCREENSHOT / CLEAN VIEW MODE ---
+    function toggleScreenshotMode() {
+      document.body.classList.toggle('screenshot-mode');
+      const isClean = document.body.classList.contains('screenshot-mode');
+      document.getElementById('exitScreenshotBanner').classList.toggle('hidden', !isClean);
+      document.getElementById('screenshotBtnText').textContent = isClean ? 'Exit Clean' : 'Screenshot';
+      if (isClean) showToast('Screenshot Mode active — editor controls hidden');
+    }
+
+    // --- CUSTOMIZATION STUDIO DRAWER CONTROLS ---
+    function openDrawer(sectionKey = 'identity') {
+      if (document.body.classList.contains('screenshot-mode')) return;
+      document.getElementById('studioBackdrop').classList.remove('hidden');
+      document.getElementById('studioDrawer').classList.remove('translate-x-full');
+      switchStudioSection(sectionKey);
+      syncStudioInputsFromState();
+    }
+
+    function closeDrawer() {
+      document.getElementById('studioBackdrop').classList.add('hidden');
+      document.getElementById('studioDrawer').classList.add('translate-x-full');
+    }
+
+    function toggleDrawer() {
+      const isClosed = document.getElementById('studioDrawer').classList.contains('translate-x-full');
+      if (isClosed) openDrawer('identity');
+      else closeDrawer();
+    }
+
+    function switchStudioSection(secKey) {
+      const sections = ['identity', 'coreStats', 'roles', 'clutches', 'weapons', 'matches', 'achievements', 'teams'];
+      sections.forEach(s => {
+        document.getElementById(`studioSection-${s}`).classList.toggle('hidden', s !== secKey);
+        const tab = document.getElementById(`studioTab-${s}`);
+        if (s === secKey) {
+          tab.className = 'py-2.5 px-2.5 text-[#4994df] border-b-2 border-[#4994df] bg-[#191e23] whitespace-nowrap';
+        } else {
+          tab.className = 'py-2.5 px-2.5 text-[#87a3bf] hover:text-white border-b-2 border-transparent whitespace-nowrap';
+        }
+      });
+    }
+
+    function buildStudioRoleSliders() {
+      const container = document.getElementById('studioRoleSliders');
+      container.innerHTML = ROLE_DEFINITIONS.map(def => `
+        <div class="bg-[#191e23] p-2.5 rounded border border-[#323c47]">
+          <div class="flex items-center justify-between mb-1">
+            <span class="font-bold text-[12px] text-white">${def.title}</span>
+            <div class="flex items-center gap-1.5">
+              <input type="number" id="inpRoleNum-${def.key}" min="0" max="100"
+                     oninput="updateSingleRoleScore('${def.key}', this.value)"
+                     class="w-14 bg-[#14181d] border border-[#38434f] rounded px-1.5 py-0.5 text-right font-bold text-white text-[12px]" />
+              <span class="text-[11px] text-[#87a3bf]">/100</span>
+            </div>
+          </div>
+          <input type="range" id="inpRoleRange-${def.key}" min="0" max="100"
+                 oninput="updateSingleRoleScore('${def.key}', this.value)"
+                 class="w-full accent-[#4994df] cursor-pointer" />
+        </div>
+      `).join('');
+    }
+
+    function syncStudioInputsFromState() {
+      const p = state.player;
+      const cs = state.coreStats;
+      const tc = state.teamsCareer;
+
+      document.getElementById('inpNickname').value = p.nickname;
+      document.getElementById('inpRealName').value = p.realName;
+      document.getElementById('inpAge').value = p.age;
+      document.getElementById('inpRole').value = p.role;
+      document.getElementById('inpPrizeMoney').value = p.prizeMoney;
+      document.getElementById('inpCountry').value = p.countryCode;
+      document.getElementById('inpPhotoUrl').value = p.photoUrl.startsWith('data:') ? '' : p.photoUrl;
+      document.getElementById('inpTeamName').value = p.teamName;
+      document.getElementById('inpTeamColor').value = p.teamColor;
+      document.getElementById('inpTeamColorHex').value = p.teamColor;
+      document.getElementById('inpTeamLogoUrl').value = p.teamLogoUrl.startsWith('data:') ? '' : p.teamLogoUrl;
+
+      // Achievements counters
+      document.getElementById('inpMajorsWon').value = p.majorsWon;
+      document.getElementById('inpBigEventsWon').value = p.bigEventsWon;
+      document.getElementById('inpMvpsWon').value = p.mvpsWon;
+      document.getElementById('inpEvpsWon').value = p.evpsWon;
+      document.getElementById('inpTop20Peak').value = p.top20Peak;
+
+      // Core stats
+      document.getElementById('inpRating').value = cs.rating;
+      document.getElementById('inpTRating').value = cs.tRating;
+      document.getElementById('inpCTRating').value = cs.ctRating;
+      document.getElementById('inpMapsCount').value = cs.maps;
+      document.getElementById('inpRoundSwing').value = cs.roundSwing;
+      document.getElementById('inpDpr').value = cs.dpr;
+      document.getElementById('inpKast').value = cs.kast;
+      document.getElementById('inpMultiKill').value = cs.multiKill;
+      document.getElementById('inpAdr').value = cs.adr;
+      document.getElementById('inpKpr').value = cs.kpr;
+
+      // Role sliders
+      ROLE_DEFINITIONS.forEach(def => {
+        const val = state.roles[def.key] ?? 50;
+        document.getElementById(`inpRoleNum-${def.key}`).value = val;
+        document.getElementById(`inpRoleRange-${def.key}`).value = val;
+      });
+
+      // Teams Career
+      document.getElementById('inpCareerTeams').value = tc.totalTeams;
+      document.getElementById('inpDaysCurrent').value = tc.daysInCurrentTeam;
+      document.getElementById('inpDaysTotal').value = tc.daysInTeams;
+
+      renderStudioClutches();
+      renderStudioWeapons();
+      renderStudioMatches();
+      renderStudioAchievements();
+      renderStudioTeammates();
+    }
+
+    function updateIdentityFromStudio() {
+      const p = state.player;
+      p.nickname = document.getElementById('inpNickname').value || 'Player';
+      p.realName = document.getElementById('inpRealName').value || '';
+      p.age = parseInt(document.getElementById('inpAge').value, 10) || 20;
+      p.role = document.getElementById('inpRole').value;
+      p.prizeMoney = document.getElementById('inpPrizeMoney').value || '$0';
+      p.countryCode = document.getElementById('inpCountry').value;
+      p.teamName = document.getElementById('inpTeamName').value || 'Team';
+      p.teamColor = document.getElementById('inpTeamColor').value || '#4994df';
+      document.getElementById('inpTeamColorHex').value = p.teamColor;
+      renderAll();
+    }
+
+    function updateAchievementsFromStudio() {
+      const p = state.player;
+      p.majorsWon = parseInt(document.getElementById('inpMajorsWon').value, 10) || 0;
+      p.bigEventsWon = parseInt(document.getElementById('inpBigEventsWon').value, 10) || 0;
+      p.mvpsWon = parseInt(document.getElementById('inpMvpsWon').value, 10) || 0;
+      p.evpsWon = parseInt(document.getElementById('inpEvpsWon').value, 10) || 0;
+      p.top20Peak = document.getElementById('inpTop20Peak').value || 'N/A';
+      renderAll();
+    }
+
+    function handlePlayerPhotoUpload(event) {
+      const file = event.target.files && event.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = function (e) {
+        state.player.photoUrl = e.target.result;
+        renderAll();
+        showToast('Custom player photo uploaded!');
+      };
+      reader.readAsDataURL(file);
+    }
+
+    function updatePhotoFromUrl(url) {
+      state.player.photoUrl = url.trim();
+      renderAll();
+    }
+
+    function resetPlayerDefaultCutout() {
+      state.player.photoUrl = '';
+      document.getElementById('inpPhotoUrl').value = '';
+      renderAll();
+    }
+
+    function handleTeamLogoUpload(event) {
+      const file = event.target.files && event.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = function (e) {
+        state.player.teamLogoUrl = e.target.result;
+        renderAll();
+        showToast('Custom team logo uploaded!');
+      };
+      reader.readAsDataURL(file);
+    }
+
+    function updateTeamLogoUrl(url) {
+      state.player.teamLogoUrl = url.trim();
+      renderAll();
+    }
+
+    function setTeamBrand(teamName, hexColor, brandKey) {
+      state.player.teamName = teamName;
+      state.player.teamColor = hexColor;
+      state.player.teamBrandKey = brandKey;
+      state.player.teamLogoUrl = '';
+      syncStudioInputsFromState();
+      renderAll();
+    }
+
+    function updateCoreStatsFromStudio() {
+      const cs = state.coreStats;
+      cs.rating = parseFloat(document.getElementById('inpRating').value) || 1.00;
+      cs.tRating = parseFloat(document.getElementById('inpTRating').value) || 1.00;
+      cs.ctRating = parseFloat(document.getElementById('inpCTRating').value) || 1.00;
+      cs.maps = parseInt(document.getElementById('inpMapsCount').value, 10) || 1;
+      cs.roundSwing = parseFloat(document.getElementById('inpRoundSwing').value) || 0;
+      cs.dpr = parseFloat(document.getElementById('inpDpr').value) || 0.65;
+      cs.kast = parseFloat(document.getElementById('inpKast').value) || 70.0;
+      cs.multiKill = parseFloat(document.getElementById('inpMultiKill').value) || 16.0;
+      cs.adr = parseFloat(document.getElementById('inpAdr').value) || 75.0;
+      cs.kpr = parseFloat(document.getElementById('inpKpr').value) || 0.70;
+      renderAll();
+    }
+
+    function autoCalculateCoreFromRating() {
+      const r = parseFloat(document.getElementById('inpRating').value) || 1.15;
+      const cs = state.coreStats;
+      cs.rating = r;
+      cs.tRating = +(r - 0.03).toFixed(2);
+      cs.ctRating = +(r + 0.03).toFixed(2);
+      cs.roundSwing = +((r - 1.02) * 8.5).toFixed(2);
+      cs.dpr = +(Math.max(0.50, Math.min(0.80, 0.67 - (r - 1.05) * 0.22))).toFixed(2);
+      cs.kast = +(Math.max(58, Math.min(86, 71.5 + (r - 1.05) * 18))).toFixed(1);
+      cs.multiKill = +(Math.max(8, Math.min(32, 16.5 + (r - 1.05) * 20))).toFixed(1);
+      cs.adr = +(Math.max(50, Math.min(110, 74.5 + (r - 1.05) * 52))).toFixed(1);
+      cs.kpr = +(Math.max(0.42, Math.min(1.08, 0.67 + (r - 1.05) * 0.62))).toFixed(2);
+      syncStudioInputsFromState();
+      renderAll();
+      showToast(`All core stats synced to ${r.toFixed(2)} Rating!`);
+    }
+
+    function updateSingleRoleScore(roleKey, val) {
+      const clamped = Math.max(0, Math.min(100, parseInt(val, 10) || 0));
+      state.roles[roleKey] = clamped;
+      document.getElementById(`inpRoleNum-${roleKey}`).value = clamped;
+      document.getElementById(`inpRoleRange-${roleKey}`).value = clamped;
+      renderRoleStats();
+    }
+
+    function maxOutAllRoles() {
+      Object.keys(state.roles).forEach(k => state.roles[k] = 99);
+      syncStudioInputsFromState();
+      renderRoleStats();
+      showToast('All Role Attributes set to 99/100!');
+    }
+
+    // --- STUDIO CLUTCHES EDITOR ---
+    function renderStudioClutches() {
+      const keys = ['1v1', '1v2', '1v3', '1v4', '1v5'];
+      document.getElementById('studioClutchesInputs').innerHTML = keys.map(k => {
+        const c = state.clutches[k];
+        return `
+          <div class="grid grid-cols-3 items-center gap-2.5 bg-[#191e23] p-2 rounded border border-[#323c47]">
+            <span class="font-oswald text-[16px] font-bold text-white pl-1">${k} Situation</span>
+            <div>
+              <label class="studio-label text-[#04bc6c]">${k} Won</label>
+              <input type="number" min="0" value="${c.won}" oninput="updateClutchCount('${k}', 'won', this.value)" class="studio-input font-bold text-[#04bc6c]" />
+            </div>
+            <div>
+              <label class="studio-label text-[#ff4e4e]">${k} Failed / Lost</label>
+              <input type="number" min="0" value="${c.lost}" oninput="updateClutchCount('${k}', 'lost', this.value)" class="studio-input font-bold text-[#ff4e4e]" />
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function updateClutchCount(situationKey, field, val) {
+      state.clutches[situationKey][field] = Math.max(0, parseInt(val, 10) || 0);
+      renderClutchesTab();
+    }
+
+    // --- STUDIO WEAPONS EDITOR (ALL 34 WEAPONS: KILLS & ROUNDS CARRIED) ---
+    function renderStudioWeapons() {
+      const container = document.getElementById('studioWeaponsInputs');
+      container.innerHTML = state.weapons.map((w, idx) => {
+        const color = WEAPON_CATEGORY_COLORS[w.category] || '#c9cbcf';
+        return `
+          <div class="grid grid-cols-12 items-center gap-2 bg-[#191e23] p-2 rounded border border-[#323c47]">
+            <div class="col-span-5 flex items-center gap-1.5 min-w-0">
+              <span class="w-2.5 h-2.5 rounded-full shrink-0" style="background-color:${color}"></span>
+              <div class="truncate">
+                <div class="font-bold text-white text-[11px] truncate">${w.name}</div>
+                <div class="text-[9px] text-[#87a3bf]">${w.category}</div>
+              </div>
+            </div>
+            <div class="col-span-3">
+              <label class="studio-label !text-[9px]">Kills</label>
+              <input type="number" min="0" value="${w.kills}" oninput="updateWeaponStat(${idx}, 'kills', this.value)" class="studio-input !py-1 font-bold text-[#4994df]" />
+            </div>
+            <div class="col-span-3">
+              <label class="studio-label !text-[9px]">Rounds</label>
+              <input type="number" min="0" value="${w.rounds}" oninput="updateWeaponStat(${idx}, 'rounds', this.value)" class="studio-input !py-1" />
+            </div>
+            <div class="col-span-1 text-right pt-3">
+              <button onclick="removeWeaponItem(${idx})" class="text-[#ff4e4e] hover:text-white"><i class="fa fa-trash"></i></button>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function updateWeaponStat(idx, field, val) {
+      if (!state.weapons[idx]) return;
+      state.weapons[idx][field] = Math.max(0, parseInt(val, 10) || 0);
+      renderWeaponsTab();
+    }
+
+    function addNewCustomWeapon() {
+      const nameEl = document.getElementById('newWepName');
+      const catEl = document.getElementById('newWepCat');
+      const name = nameEl.value.trim();
+      if (!name) {
+        showToast('Enter a weapon name first');
+        return;
+      }
+      state.weapons.unshift({
+        name,
+        category: catEl.value,
+        kills: 250,
+        rounds: 400
+      });
+      nameEl.value = '';
+      renderStudioWeapons();
+      renderWeaponsTab();
+      showToast(`Added ${name} to weapons!`);
+    }
+
+    function removeWeaponItem(idx) {
+      state.weapons.splice(idx, 1);
+      renderStudioWeapons();
+      renderWeaponsTab();
+    }
+
+    // --- STUDIO MATCHES EDITOR ---
+    function renderStudioMatches() {
+      const container = document.getElementById('studioMatchesList');
+      container.innerHTML = state.matches.map((m, idx) => `
+        <div class="bg-[#191e23] p-2.5 rounded border border-[#323c47] space-y-2">
+          <div class="flex items-center justify-between">
+            <span class="font-bold text-[11px] text-[#4994df]">Match #${idx + 1} (${m.map})</span>
+            <button onclick="removeMatchRow(${idx})" class="text-[10px] text-[#ff4e4e] hover:underline">Delete</button>
+          </div>
+          <div class="grid grid-cols-3 gap-1.5">
+            <div>
+              <label class="studio-label">Date</label>
+              <input type="text" value="${m.date}" oninput="updateMatchField(${idx}, 'date', this.value)" class="studio-input" />
+            </div>
+            <div>
+              <label class="studio-label">Team</label>
+              <input type="text" value="${m.team}" oninput="updateMatchField(${idx}, 'team', this.value)" class="studio-input font-bold" />
+            </div>
+            <div>
+              <label class="studio-label">Opponent</label>
+              <input type="text" value="${m.opp}" oninput="updateMatchField(${idx}, 'opp', this.value)" class="studio-input font-bold" />
+            </div>
+          </div>
+          <div class="grid grid-cols-3 gap-1.5">
+            <div>
+              <label class="studio-label">Event</label>
+              <input type="text" value="${m.event || ''}" oninput="updateMatchField(${idx}, 'event', this.value)" class="studio-input" />
+            </div>
+            <div>
+              <label class="studio-label">Map</label>
+              <input type="text" value="${m.map}" oninput="updateMatchField(${idx}, 'map', this.value)" class="studio-input text-[#4994df]" />
+            </div>
+            <div>
+              <label class="studio-label">Score (e.g. 13 - 8)</label>
+              <input type="text" value="${m.score}" oninput="updateMatchField(${idx}, 'score', this.value)" class="studio-input font-bold" />
+            </div>
+          </div>
+          <div class="grid grid-cols-4 gap-1.5">
+            <div>
+              <label class="studio-label">Kills</label>
+              <input type="number" value="${m.kills}" oninput="updateMatchField(${idx}, 'kills', parseInt(this.value,10)||0)" class="studio-input" />
+            </div>
+            <div>
+              <label class="studio-label">Deaths</label>
+              <input type="number" value="${m.deaths}" oninput="updateMatchField(${idx}, 'deaths', parseInt(this.value,10)||0)" class="studio-input" />
+            </div>
+            <div>
+              <label class="studio-label">ADR</label>
+              <input type="number" step="0.1" value="${m.adr}" oninput="updateMatchField(${idx}, 'adr', parseFloat(this.value)||0)" class="studio-input" />
+            </div>
+            <div>
+              <label class="studio-label">Rating 3.0</label>
+              <input type="number" step="0.01" value="${m.rating}" oninput="updateMatchField(${idx}, 'rating', parseFloat(this.value)||1.0)" class="studio-input font-bold text-[#04bc6c]" />
+            </div>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function updateMatchField(idx, field, val) {
+      if (!state.matches[idx]) return;
+      state.matches[idx][field] = val;
+      renderMatchesTab();
+    }
+
+    // --- STUDIO ACHIEVEMENTS & TROPHIES EDITOR ---
+    function renderStudioAchievements() {
+      document.getElementById('studioTrophiesList').innerHTML = state.trophies.map((t, idx) => `
+        <div class="grid grid-cols-12 items-center gap-1.5 bg-[#191e23] p-2 rounded border border-[#323c47]">
+          <input type="text" value="${t.title}" oninput="updateTrophyField(${idx}, 'title', this.value)" class="studio-input col-span-6 font-bold" placeholder="Event Title" />
+          <input type="text" value="${t.year}" oninput="updateTrophyField(${idx}, 'year', this.value)" class="studio-input col-span-2" placeholder="Year" />
+          <select onchange="updateTrophyField(${idx}, 'type', this.value)" class="studio-input col-span-3">
+            <option value="Major" ${t.type === 'Major' ? 'selected' : ''}>Major Gold</option>
+            <option value="BigEvent" ${t.type !== 'Major' ? 'selected' : ''}>Big Event</option>
+          </select>
+          <button onclick="removeTrophyItem(${idx})" class="col-span-1 text-[#ff4e4e] hover:text-white text-center"><i class="fa fa-trash"></i></button>
+        </div>
+      `).join('');
+
+      document.getElementById('studioPlacementsList').innerHTML = state.placements.map((pl, idx) => `
+        <div class="bg-[#191e23] p-2 rounded border border-[#323c47] space-y-1.5">
+          <div class="grid grid-cols-12 gap-1.5 items-center">
+            <input type="text" value="${pl.place}" oninput="updatePlacementField(${idx}, 'place', this.value)" class="studio-input col-span-2 font-bold text-[#f5a623]" placeholder="1st" />
+            <input type="text" value="${pl.event}" oninput="updatePlacementField(${idx}, 'event', this.value)" class="studio-input col-span-6 font-bold" placeholder="Tournament" />
+            <input type="text" value="${pl.prize}" oninput="updatePlacementField(${idx}, 'prize', this.value)" class="studio-input col-span-3 text-[#04bc6c] font-bold" placeholder="$500,000" />
+            <button onclick="removePlacementRow(${idx})" class="col-span-1 text-[#ff4e4e] text-center"><i class="fa fa-trash"></i></button>
+          </div>
+          <div class="grid grid-cols-2 gap-1.5">
+            <input type="text" value="${pl.team}" oninput="updatePlacementField(${idx}, 'team', this.value)" class="studio-input !py-1 text-[11px]" placeholder="Team" />
+            <input type="text" value="${pl.date}" oninput="updatePlacementField(${idx}, 'date', this.value)" class="studio-input !py-1 text-[11px]" placeholder="Date" />
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function updateTrophyField(idx, field, val) {
+      if (!state.trophies[idx]) return;
+      state.trophies[idx][field] = val;
+      renderAchievementsTab();
+    }
+
+    function updatePlacementField(idx, field, val) {
+      if (!state.placements[idx]) return;
+      state.placements[idx][field] = val;
+      renderAchievementsTab();
+    }
+
+    // --- STUDIO TEAMS & TEAMMATES EDITOR ---
+    function updateTeamsCareerFromStudio() {
+      state.teamsCareer.totalTeams = parseInt(document.getElementById('inpCareerTeams').value, 10) || 1;
+      state.teamsCareer.daysInCurrentTeam = parseInt(document.getElementById('inpDaysCurrent').value, 10) || 1;
+      state.teamsCareer.daysInTeams = parseInt(document.getElementById('inpDaysTotal').value, 10) || 1;
+      renderAll();
+    }
+
+    function renderStudioTeammates() {
+      const container = document.getElementById('studioTeammatesList');
+      container.innerHTML = state.teammates.map((tm, idx) => `
+        <div class="bg-[#191e23] p-2.5 rounded border border-[#323c47] space-y-2">
+          <div class="flex items-center justify-between">
+            <span class="font-bold text-[11px] text-[#4994df]">Teammate #${idx + 1}</span>
+            <button onclick="removeTeammate(${idx})" class="text-[10px] text-[#ff4e4e] hover:underline">Remove</button>
+          </div>
+          <div class="grid grid-cols-2 gap-2">
+            <div>
+              <label class="studio-label">Nickname</label>
+              <input type="text" value="${tm.nickname}" oninput="updateTeammateField(${idx}, 'nickname', this.value)" class="studio-input font-bold" />
+            </div>
+            <div>
+              <label class="studio-label">Full Name</label>
+              <input type="text" value="${tm.realName}" oninput="updateTeammateField(${idx}, 'realName', this.value)" class="studio-input" />
+            </div>
+          </div>
+          <div class="grid grid-cols-3 gap-2">
+            <div>
+              <label class="studio-label">Country</label>
+              <select onchange="updateTeammateField(${idx}, 'countryCode', this.value)" class="studio-input">
+                ${COUNTRIES.map(c => `<option value="${c.code}" ${c.code === tm.countryCode ? 'selected' : ''}>${c.name}</option>`).join('')}
+              </select>
+            </div>
+            <div>
+              <label class="studio-label">Role</label>
+              <input type="text" value="${tm.role}" oninput="updateTeammateField(${idx}, 'role', this.value)" class="studio-input" />
+            </div>
+            <div>
+              <label class="studio-label">Rating 3.0</label>
+              <input type="number" step="0.01" value="${tm.rating}" oninput="updateTeammateField(${idx}, 'rating', parseFloat(this.value)||1.0)" class="studio-input font-bold text-[#04bc6c]" />
+            </div>
+          </div>
+          <div class="flex items-center gap-2">
+            <label class="bg-[#2d3844] hover:bg-[#384654] text-[#dcdcdc] text-[10px] font-semibold py-1 px-2 rounded border border-[#38434f] cursor-pointer whitespace-nowrap">
+              Upload Photo
+              <input type="file" accept="image/*" onchange="handleTeammatePhotoUpload(event, ${idx})" class="hidden" />
+            </label>
+            <input type="text" value="${tm.photoUrl.startsWith('data:') ? '' : tm.photoUrl}" oninput="updateTeammateField(${idx}, 'photoUrl', this.value)" placeholder="Or paste photo URL..." class="studio-input text-[10px]" />
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function updateTeammateField(idx, field, val) {
+      if (!state.teammates[idx]) return;
+      state.teammates[idx][field] = val;
+      renderTeamsTab();
+    }
+
+    function handleTeammatePhotoUpload(event, idx) {
+      const file = event.target.files && event.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = function (e) {
+        state.teammates[idx].photoUrl = e.target.result;
+        renderTeamsTab();
+        showToast(`Updated photo for ${state.teammates[idx].nickname}`);
+      };
+      reader.readAsDataURL(file);
+    }
+
+    function addNewTeammate() {
+      state.teammates.push({
+        nickname: 'NewPro',
+        realName: 'Alexandr Lind',
+        countryCode: 'se',
+        role: 'Rifler',
+        maps: 210,
+        days: 365,
+        rating: 1.16,
+        jerseyColor: state.player.teamColor,
+        photoUrl: ''
+      });
+      renderStudioTeammates();
+      renderTeamsTab();
+      showToast('Added new teammate!');
+    }
+
+    function removeTeammate(idx) {
+      state.teammates.splice(idx, 1);
+      renderStudioTeammates();
+      renderTeamsTab();
+    }
+
+    function addTeamHistoryEntry() {
+      state.teamHistory.push({
+        period: '2020 - 2022',
+        team: 'Astralis',
+        days: 540,
+        maps: 315,
+        rating: state.coreStats.rating
+      });
+      renderTeamsTab();
+      showToast('Added team history record');
+    }
+
+    // --- QUICK PRO PRESETS ---
+    function applyPreset(presetKey) {
+      if (presetKey === 'karrigan') {
+        state.player = {
+          nickname: 'karrigan',
+          realName: 'Finn Andersen',
+          age: 35,
+          countryCode: 'dk',
+          role: 'IGL',
+          prizeMoney: '$2,145,800',
+          teamName: 'FaZe Clan',
+          teamColor: '#e31e24',
+          teamBrandKey: 'faze',
+          teamLogoUrl: '',
+          photoUrl: '',
+          majorsWon: 1,
+          bigEventsWon: 21,
+          mvpsWon: 2,
+          evpsWon: 14,
+          top20Peak: '#8 (2015)'
+        };
+        state.coreStats = {
+          maps: 607,
+          rating: 0.86,
+          tRating: 0.82,
+          ctRating: 0.90,
+          roundSwing: -1.91,
+          dpr: 0.71,
+          kast: 67.7,
+          multiKill: 12.0,
+          adr: 62.0,
+          kpr: 0.54
+        };
+        state.roles = { firepower: 24, entrying: 52, trading: 32, opening: 25, closing: 14, sniping: 3, utility: 62 };
+        state.clutches = {
+          '1v1': { won: 84, lost: 52 },
+          '1v2': { won: 28, lost: 64 },
+          '1v3': { won: 6, lost: 41 },
+          '1v4': { won: 2, lost: 19 },
+          '1v5': { won: 1, lost: 8 }
+        };
+        state.weapons = getDefaultWeaponsList(1, 1);
+        state.teamsCareer = { totalTeams: 14, daysInCurrentTeam: 1512, daysInTeams: 5490 };
+      } else if (presetKey === 'zywoo') {
+        state.player = {
+          nickname: 'ZywOo',
+          realName: 'Mathieu Herbaut',
+          age: 25,
+          countryCode: 'fr',
+          role: 'AWPer',
+          prizeMoney: '$1,890,400',
+          teamName: 'Team Vitality',
+          teamColor: '#f5a623',
+          teamBrandKey: 'vitality',
+          teamLogoUrl: '',
+          photoUrl: '',
+          majorsWon: 2,
+          bigEventsWon: 18,
+          mvpsWon: 22,
+          evpsWon: 38,
+          top20Peak: '#1 (3x)'
+        };
+        state.coreStats = {
+          maps: 412,
+          rating: 1.42,
+          tRating: 1.38,
+          ctRating: 1.46,
+          roundSwing: 4.15,
+          dpr: 0.57,
+          kast: 78.9,
+          multiKill: 24.6,
+          adr: 93.4,
+          kpr: 0.91
+        };
+        state.roles = { firepower: 99, entrying: 74, trading: 82, opening: 94, closing: 92, sniping: 95, utility: 78 };
+        state.clutches = {
+          '1v1': { won: 148, lost: 62 },
+          '1v2': { won: 64, lost: 58 },
+          '1v3': { won: 21, lost: 34 },
+          '1v4': { won: 7, lost: 14 },
+          '1v5': { won: 3, lost: 5 }
+        };
+        state.weapons = getDefaultWeaponsList(1.2, 42);
+        state.teamsCareer = { totalTeams: 3, daysInCurrentTeam: 2680, daysInTeams: 2940 };
+      } else if (presetKey === 'm0nesy') {
+        state.player = {
+          nickname: 'm0NESY',
+          realName: 'Ilya Osipov',
+          age: 21,
+          countryCode: 'ru',
+          role: 'AWPer',
+          prizeMoney: '$1,420,000',
+          teamName: 'Team Falcons',
+          teamColor: '#00b57c',
+          teamBrandKey: 'falcons',
+          teamLogoUrl: '',
+          photoUrl: '',
+          majorsWon: 1,
+          bigEventsWon: 9,
+          mvpsWon: 6,
+          evpsWon: 24,
+          top20Peak: '#2 (2025)'
+        };
+        state.coreStats = {
+          maps: 385,
+          rating: 1.34,
+          tRating: 1.29,
+          ctRating: 1.39,
+          roundSwing: 3.42,
+          dpr: 0.56,
+          kast: 77.2,
+          multiKill: 22.4,
+          adr: 86.8,
+          kpr: 0.86
+        };
+        state.roles = { firepower: 95, entrying: 68, trading: 79, opening: 96, closing: 91, sniping: 99, utility: 71 };
+        state.clutches = {
+          '1v1': { won: 132, lost: 54 },
+          '1v2': { won: 53, lost: 49 },
+          '1v3': { won: 18, lost: 29 },
+          '1v4': { won: 6, lost: 12 },
+          '1v5': { won: 2, lost: 4 }
+        };
+        state.weapons = getDefaultWeaponsList(1.0, 52);
+        state.teamsCareer = { totalTeams: 3, daysInCurrentTeam: 245, daysInTeams: 1620 };
+      } else if (presetKey === 'dream') {
+        state.player = {
+          nickname: 'vortex',
+          realName: 'Leo Lindqvist',
+          age: 17,
+          countryCode: 'se',
+          role: 'Star Rifler',
+          prizeMoney: '$3,450,000',
+          teamName: 'Team Spirit',
+          teamColor: '#10b981',
+          teamBrandKey: 'spirit',
+          teamLogoUrl: '',
+          photoUrl: '',
+          majorsWon: 3,
+          bigEventsWon: 24,
+          mvpsWon: 18,
+          evpsWon: 40,
+          top20Peak: '#1 (2026)'
+        };
+        state.coreStats = {
+          maps: 310,
+          rating: 1.55,
+          tRating: 1.52,
+          ctRating: 1.58,
+          roundSwing: 5.10,
+          dpr: 0.54,
+          kast: 82.5,
+          multiKill: 27.8,
+          adr: 101.4,
+          kpr: 0.98
+        };
+        state.roles = { firepower: 99, entrying: 96, trading: 94, opening: 98, closing: 95, sniping: 92, utility: 90 };
+        state.clutches = {
+          '1v1': { won: 190, lost: 40 },
+          '1v2': { won: 88, lost: 42 },
+          '1v3': { won: 34, lost: 22 },
+          '1v4': { won: 14, lost: 9 },
+          '1v5': { won: 6, lost: 3 }
+        };
+        state.weapons = getDefaultWeaponsList(1.6, 25);
+        state.teamsCareer = { totalTeams: 2, daysInCurrentTeam: 730, daysInTeams: 1095 };
+      }
+
+      syncStudioInputsFromState();
+      renderAll();
+      showToast(`Loaded ${state.player.nickname} preset!`);
+    }
+
+    // --- TOAST HELPER ---
+    let toastTimer = null;
+    function showToast(msg) {
+      const el = document.getElementById('toastNotification');
+      document.getElementById('toastText').textContent = msg;
+      el.classList.remove('opacity-0');
+      el.classList.add('opacity-100');
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => {
+        el.classList.remove('opacity-100');
+        el.classList.add('opacity-0');
+      }, 2200);
+    }
+  </script>
+</body>
+</html>
